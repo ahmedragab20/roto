@@ -112,75 +112,95 @@ public enum ConfigLoader {
             }
         }
 
-        if let window = table["window"]?.table {
-            if let value = window["gap"] {
-                if let number = doubleValue(value) {
-                    config.window.gap = number
-                } else {
-                    errors.append("window.gap must be a number")
-                }
-            }
-            if let layouts = window["layouts"]?.table {
-                var parsed: [String: FractionalRect] = [:]
-                for key in layouts.keys {
-                    guard let entry = layouts[key]?.table else {
-                        errors.append("window.layouts.\(key) must be a table { x, y, w, h }")
-                        continue
-                    }
-                    if let rect = fractionalRect(entry) {
-                        parsed[key] = rect
+        if let value = table["window"] {
+            if let window = value.table {
+                if let value = window["gap"] {
+                    if let number = doubleValue(value) {
+                        config.window.gap = number
                     } else {
-                        errors.append("window.layouts.\(key) needs numeric x, y, w, h")
+                        errors.append("window.gap must be a number")
                     }
                 }
-                config.window.layouts = parsed
+                if let layouts = window["layouts"]?.table {
+                    var parsed: [String: FractionalRect] = [:]
+                    for key in layouts.keys {
+                        guard let entry = layouts[key]?.table else {
+                            errors.append("window.layouts.\(key) must be a table { x, y, w, h }")
+                            continue
+                        }
+                        if let rect = fractionalRect(entry) {
+                            parsed[key] = rect
+                        } else {
+                            errors.append("window.layouts.\(key) needs numeric x, y, w, h")
+                        }
+                    }
+                    config.window.layouts = parsed
+                }
+            } else {
+                errors.append("window must be a table")
             }
         }
 
-        if let hotkeys = table["hotkeys"]?.table {
-            if let window = hotkeys["window"]?.table {
-                config.hotkeys.window = stringMap(window, path: "hotkeys.window", errors: &errors)
-            }
-            if let apps = hotkeys["apps"]?.table {
-                config.hotkeys.apps = stringMap(apps, path: "hotkeys.apps", errors: &errors)
-            }
-            if let value = hotkeys["clipboard"] {
-                if let string = value.string {
-                    config.hotkeys.clipboard = string
-                } else {
-                    errors.append("hotkeys.clipboard must be a string")
+        if let value = table["hotkeys"] {
+            if let hotkeys = value.table {
+                if let value = hotkeys["window"] {
+                    if let window = value.table {
+                        config.hotkeys.window = stringMap(window, path: "hotkeys.window", errors: &errors)
+                    } else {
+                        errors.append("hotkeys.window must be a table")
+                    }
                 }
-            }
-            if let value = hotkeys["emoji"] {
-                if let string = value.string {
-                    config.hotkeys.emoji = string
-                } else {
-                    errors.append("hotkeys.emoji must be a string")
+                if let value = hotkeys["apps"] {
+                    if let apps = value.table {
+                        config.hotkeys.apps = stringMap(apps, path: "hotkeys.apps", errors: &errors)
+                    } else {
+                        errors.append("hotkeys.apps must be a table")
+                    }
                 }
-            }
-            if let value = hotkeys["windows"] {
-                if let string = value.string {
-                    config.hotkeys.windows = string
-                } else {
-                    errors.append("hotkeys.windows must be a string")
+                if let value = hotkeys["clipboard"] {
+                    if let string = value.string {
+                        config.hotkeys.clipboard = string
+                    } else {
+                        errors.append("hotkeys.clipboard must be a string")
+                    }
                 }
-            }
-            if let value = hotkeys["cheatsheet"] {
-                if let string = value.string {
-                    config.hotkeys.cheatsheet = string
-                } else {
-                    errors.append("hotkeys.cheatsheet must be a string")
+                if let value = hotkeys["emoji"] {
+                    if let string = value.string {
+                        config.hotkeys.emoji = string
+                    } else {
+                        errors.append("hotkeys.emoji must be a string")
+                    }
                 }
+                if let value = hotkeys["windows"] {
+                    if let string = value.string {
+                        config.hotkeys.windows = string
+                    } else {
+                        errors.append("hotkeys.windows must be a string")
+                    }
+                }
+                if let value = hotkeys["cheatsheet"] {
+                    if let string = value.string {
+                        config.hotkeys.cheatsheet = string
+                    } else {
+                        errors.append("hotkeys.cheatsheet must be a string")
+                    }
+                }
+            } else {
+                errors.append("hotkeys must be a table")
             }
         }
 
-        if let apps = table["apps"]?.table {
-            if let value = apps["when_focused"] {
-                if let string = value.string, let behavior = AppFocusBehavior(rawValue: string) {
-                    config.apps.whenFocused = behavior
-                } else {
-                    errors.append("apps.when_focused must be cycle, hide, or none")
+        if let value = table["apps"] {
+            if let apps = value.table {
+                if let value = apps["when_focused"] {
+                    if let string = value.string, let behavior = AppFocusBehavior(rawValue: string) {
+                        config.apps.whenFocused = behavior
+                    } else {
+                        errors.append("apps.when_focused must be cycle, hide, or none")
+                    }
                 }
+            } else {
+                errors.append("apps must be a table")
             }
         }
 
@@ -266,10 +286,11 @@ public enum ConfigLoader {
 
         func add(_ raw: String, _ action: BoundAction, origin: String) throws {
             let combo = try KeyCombo.parse(raw)
-            if let previous = seen[combo.canonical] {
+            let physical = "\(combo.keyCode):\(combo.carbonModifiers)"
+            if let previous = seen[physical] {
                 throw ConfigError.validation("hotkey '\(combo.canonical)' is bound twice (\(previous) and \(origin))")
             }
-            seen[combo.canonical] = origin
+            seen[physical] = origin
             result.append((combo, action))
         }
 

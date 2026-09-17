@@ -20,7 +20,7 @@ public struct KeymapBinding: Identifiable, Equatable, Sendable {
 }
 
 public enum KeymapEditor {
-    /// Keep every existing row, even physical aliases the loader accepts, so users can fix conflicts.
+    /// Keep every existing row, including physical aliases, so users can fix conflicts.
     public static func bindings(in config: Config) -> [KeymapBinding] {
         var result = config.hotkeys.window.keys.sorted().map {
             KeymapBinding(kind: .window, shortcut: $0, target: config.hotkeys.window[$0]!)
