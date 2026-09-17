@@ -42,6 +42,7 @@ public enum ConfigLoader {
         "ctrl+alt+enter" = "maximize"
         "ctrl+alt+shift+enter" = "almost-maximize"
         "ctrl+alt+c" = "center"
+        "ctrl+alt+shift+c" = "center-large"
         "ctrl+alt+cmd+right" = "next-display"
         "ctrl+alt+cmd+left" = "prev-display"
         "ctrl+alt+shift+h" = "focus-left"

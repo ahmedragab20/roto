@@ -25,6 +25,7 @@ editor = { x = 0.0, y = 0.0, w = 0.6, h = 1.0 }
 "ctrl+alt+enter" = "maximize"
 "ctrl+alt+shift+enter" = "almost-maximize"
 "ctrl+alt+c" = "center"
+"ctrl+alt+shift+c" = "center-large"   # centered, most of the screen, not full
 "ctrl+alt+cmd+right" = "next-display"
 "ctrl+alt+cmd+left" = "prev-display"
 "ctrl+alt+shift+h" = "focus-left"

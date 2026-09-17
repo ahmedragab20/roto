@@ -9,6 +9,7 @@ struct ConfigLoaderTests {
         #expect(config.window.gap == 0)
         #expect(config.window.layouts["editor"]?.w == 0.6)
         #expect(config.hotkeys.window["ctrl+alt+left"] == "half-left")
+        #expect(config.hotkeys.window["ctrl+alt+shift+c"] == "center-large")
         #expect(config.hotkeys.apps["ctrl+alt+t"] == "com.apple.Terminal")
         #expect(config.hotkeys.clipboard == "ctrl+alt+v")
         #expect(config.hotkeys.emoji == "ctrl+alt+period")

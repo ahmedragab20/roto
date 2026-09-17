@@ -29,7 +29,7 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 
 | Tool | Default key | What it does |
 | --- | --- | --- |
-| Window layout | ⌃⌥← ⌃⌥→ ⌃⌥↑ ⌃⌥↓ … | Halves, thirds, quarters, maximize, center, next display |
+| Window layout | ⌃⌥← ⌃⌥→ ⌃⌥↑ ⌃⌥↓ … | Halves, thirds, quarters, maximize, large centered (⌃⌥⇧C), center, next display |
 | Window focus | ⌃⌥⇧H/J/K/L | Focus the window to the left, right, above, or below |
 | App hotkeys | ⌃⌥T, ⌃⌥B, your own | Open, focus, or cycle an app with one chord |
 | Window switcher | ⌃⌥W | Every open window, searchable, with an inspector |

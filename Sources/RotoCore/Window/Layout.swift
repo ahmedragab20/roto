@@ -11,6 +11,7 @@ public enum Direction: String, Sendable, Equatable, CaseIterable {
 public enum WindowCommand: Sendable, Equatable {
     case apply(FractionalRect)
     case center
+    case centerLarge
     case nextDisplay
     case prevDisplay
     case focus(Direction)
@@ -60,12 +61,26 @@ public struct Layout {
         return CGRect(x: x, y: y, width: max(w, 1), height: max(h, 1))
     }
 
+    /// A large, centered frame that still shows the desktop around it. Width is
+    /// capped relative to height so ultrawide displays keep a comfortable shape.
+    public static func centeredLarge(in visible: CGRect) -> CGRect {
+        let height = (visible.height * 0.86).rounded()
+        let width = min(visible.width * 0.8, height * 1.6).rounded()
+        return CGRect(
+            x: (visible.midX - width / 2).rounded(),
+            y: (visible.midY - height / 2).rounded(),
+            width: width,
+            height: height
+        )
+    }
+
     public static func resolveWindowCommand(
         _ action: String,
         layouts: [String: FractionalRect]
     ) throws -> WindowCommand {
         let name = action.trimmingCharacters(in: .whitespacesAndNewlines)
         if name == "center" { return .center }
+        if name == "center-large" { return .centerLarge }
         if name == "next-display" { return .nextDisplay }
         if name == "prev-display" { return .prevDisplay }
         if name == "focus-next-display" { return .focusNextDisplay }

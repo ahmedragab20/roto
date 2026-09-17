@@ -116,7 +116,7 @@ public enum Cheatsheet {
         "half-left", "half-right", "half-top", "half-bottom",
         "quarter-top-left", "quarter-top-right", "quarter-bottom-left", "quarter-bottom-right",
         "third-left", "third-center", "third-right", "two-thirds-left", "two-thirds-right",
-        "maximize", "almost-maximize", "center",
+        "maximize", "almost-maximize", "center-large", "center",
         "next-display", "prev-display",
         "focus-left", "focus-right", "focus-up", "focus-down", "focus-next-display", "focus-prev-display",
     ]
@@ -137,6 +137,7 @@ public enum Cheatsheet {
         "two-thirds-right": "Right two thirds",
         "maximize": "Maximize",
         "almost-maximize": "Almost maximize",
+        "center-large": "Center, large",
         "center": "Center, keep size",
         "next-display": "Move window to next display",
         "prev-display": "Move window to previous display",

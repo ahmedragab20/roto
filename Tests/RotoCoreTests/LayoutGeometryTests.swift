@@ -32,9 +32,20 @@ struct LayoutTests {
 
     @Test func resolveFocusAndCenter() throws {
         #expect(try Layout.resolveWindowCommand("center", layouts: [:]) == .center)
+        #expect(try Layout.resolveWindowCommand("center-large", layouts: [:]) == .centerLarge)
         #expect(try Layout.resolveWindowCommand("focus-left", layouts: [:]) == .focus(.left))
         #expect(try Layout.resolveWindowCommand("next-display", layouts: [:]) == .nextDisplay)
         #expect(try Layout.resolveWindowCommand("focus-next-display", layouts: [:]) == .focusNextDisplay)
+    }
+
+    @Test func centeredLargeOnLaptop() {
+        let visible = CGRect(x: 0, y: 25, width: 1512, height: 944)
+        #expect(Layout.centeredLarge(in: visible) == CGRect(x: 151, y: 91, width: 1210, height: 812))
+    }
+
+    @Test func centeredLargeCapsWidthOnUltrawide() {
+        let visible = CGRect(x: 1512, y: 0, width: 3440, height: 1415)
+        #expect(Layout.centeredLarge(in: visible) == CGRect(x: 2259, y: 99, width: 1947, height: 1217))
     }
 }
 

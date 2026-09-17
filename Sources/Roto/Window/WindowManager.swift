@@ -16,6 +16,8 @@ final class WindowManager {
             apply(fraction)
         case .center:
             center()
+        case .centerLarge:
+            centerLarge()
         case .nextDisplay:
             moveToAdjacentDisplay(reverse: false)
         case .prevDisplay:
@@ -42,6 +44,16 @@ final class WindowManager {
         let cocoa = Geometry.axToCocoa(axFrame, primaryMaxY: screens.primaryMaxY)
         guard let visible = visibleFrame(containing: cocoa) else { return }
         let dest = Geometry.centered(size: cocoa.size, in: visible)
+        AXSupport.setFrame(window, Geometry.cocoaToAX(dest, primaryMaxY: screens.primaryMaxY))
+    }
+
+    private func centerLarge() {
+        guard let window = AXSupport.focusedWindow(),
+              let axFrame = AXSupport.frame(of: window)
+        else { return }
+        let cocoa = Geometry.axToCocoa(axFrame, primaryMaxY: screens.primaryMaxY)
+        guard let visible = visibleFrame(containing: cocoa) else { return }
+        let dest = Layout.centeredLarge(in: visible)
         AXSupport.setFrame(window, Geometry.cocoaToAX(dest, primaryMaxY: screens.primaryMaxY))
     }
 

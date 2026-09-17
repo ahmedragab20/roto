@@ -30,6 +30,7 @@ editor = { x = 0.0, y = 0.0, w = 0.6, h = 1.0 }
 "ctrl+alt+enter" = "maximize"
 "ctrl+alt+shift+enter" = "almost-maximize"
 "ctrl+alt+c" = "center"              # keep size, center on the current display
+"ctrl+alt+shift+c" = "center-large"  # centered, 86% tall, 80% wide (capped on ultrawide screens)
 "ctrl+alt+cmd+right" = "next-display"
 "ctrl+alt+cmd+left" = "prev-display"
 "ctrl+alt+shift+h" = "focus-left"
@@ -87,6 +88,7 @@ Values for `[hotkeys.window]`:
 | `two-thirds-right` | Right two thirds |
 | `maximize` | Maximize |
 | `almost-maximize` | Almost maximize |
+| `center-large` | Center, large: 86% of the height, 80% of the width, at most 1.6× as wide as tall |
 | `center` | Center, keep size |
 | `next-display` | Move window to next display |
 | `prev-display` | Move window to previous display |

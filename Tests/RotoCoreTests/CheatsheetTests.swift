@@ -48,6 +48,7 @@ struct CheatsheetTests {
     @Test func describesWindowActions() {
         #expect(Cheatsheet.describe(windowAction: "layout:editor") == "Layout “editor”")
         #expect(Cheatsheet.describe(windowAction: "maximize") == "Maximize")
+        #expect(Cheatsheet.describe(windowAction: "center-large") == "Center, large")
         #expect(Cheatsheet.describe(windowAction: "weird") == "weird")
     }
 }
