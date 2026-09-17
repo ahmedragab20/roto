@@ -3,17 +3,23 @@ import ServiceManagement
 import RotoCore
 
 @MainActor
-final class StatusMenu: NSObject {
+final class StatusMenu: NSObject, NSMenuDelegate {
     private let item: NSStatusItem
+    private let accessibilityStatus: () -> Bool
     var onReload: (() -> Void)?
     var onShowShortcuts: (() -> Void)?
+    var onCustomizeShortcuts: (() -> Void)?
     var onShowWindows: (() -> Void)?
     var onQuit: (() -> Void)?
     var onRequestAccessibility: (() -> Void)?
     private var lastError: String?
 
-    override init() {
-        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    init(
+        statusItem: NSStatusItem? = nil,
+        accessibilityStatus: @escaping () -> Bool = { AXSupport.isTrusted }
+    ) {
+        item = statusItem ?? NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        self.accessibilityStatus = accessibilityStatus
         super.init()
         item.button?.image = Self.markImage
         item.menu = NSMenu()
@@ -24,15 +30,16 @@ final class StatusMenu: NSObject {
         lastError = error
         let menu = NSMenu()
         menu.autoenablesItems = false
+        menu.delegate = self
 
         let access = NSMenuItem(
-            title: AXSupport.isTrusted ? "Accessibility: granted" : "Accessibility: needed — click to grant",
+            title: "",
             action: #selector(grantAccess),
             keyEquivalent: ""
         )
         access.target = self
-        access.isEnabled = !AXSupport.isTrusted
         menu.addItem(access)
+        menuNeedsUpdate(menu)
 
         if let error, !error.isEmpty {
             let err = NSMenuItem(title: "Config error: \(error)", action: nil, keyEquivalent: "")
@@ -51,6 +58,10 @@ final class StatusMenu: NSObject {
         let shortcuts = NSMenuItem(title: "Keyboard Shortcuts…", action: #selector(showShortcuts), keyEquivalent: "/")
         shortcuts.target = self
         menu.addItem(shortcuts)
+
+        let customize = NSMenuItem(title: "Customize Shortcuts…", action: #selector(customizeShortcuts), keyEquivalent: ",")
+        customize.target = self
+        menu.addItem(customize)
 
         let windows = NSMenuItem(title: "Switch Windows…", action: #selector(showWindows), keyEquivalent: "")
         windows.target = self
@@ -80,6 +91,14 @@ final class StatusMenu: NSObject {
         item.menu = menu
     }
 
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        guard let access = menu.items.first(where: { $0.action == #selector(grantAccess) }) else { return }
+        // Permission can change in System Settings without any config change or app activation.
+        let trusted = accessibilityStatus()
+        access.title = trusted ? "Accessibility: granted" : "Accessibility: needed — click to grant"
+        access.isEnabled = !trusted
+    }
+
     /// The roto mark as a template, so macOS tints it like any menu bar icon.
     private static let markImage: NSImage = {
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
@@ -106,6 +125,10 @@ final class StatusMenu: NSObject {
 
     @objc private func showShortcuts() {
         onShowShortcuts?()
+    }
+
+    @objc private func customizeShortcuts() {
+        onCustomizeShortcuts?()
     }
 
     @objc private func showWindows() {

@@ -192,7 +192,7 @@ public enum Cheatsheet {
             ShortcutEntry(keys: "⎋", title: "Clear search, then close"),
         ]),
         ShortcutSection(title: "In this sheet", entries: [
-            ShortcutEntry(keys: "⌘,", title: "Open config file"),
+            ShortcutEntry(keys: "⌘,", title: "Customize shortcuts"),
             ShortcutEntry(keys: "⎋", title: "Clear search, then close"),
         ]),
     ]

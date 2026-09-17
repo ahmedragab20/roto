@@ -36,6 +36,7 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 | Clipboard history | ⌃⌥V | Text, images, and files; pastes straight into the field you were in |
 | Emoji picker | ⌃⌥. | Types the emoji where your cursor is |
 | Cheatsheet | ⌃⌥/ | Every shortcut in your config, also in the menu bar |
+| Shortcut editor | ⌘, in cheatsheet | Add, edit, record, or remove window, app, and popup shortcuts |
 
 ## Native, fast, small
 
@@ -64,7 +65,7 @@ make install                  # build, bundle, copy to /Applications/roto.app
 open /Applications/roto.app
 ```
 
-On first launch, allow roto under **System Settings → Privacy & Security → Accessibility**. It is the only permission roto needs. To keep that permission across rebuilds, sign with a local certificate; see [Signing](docs/guide.md#signing-so-accessibility-sticks).
+On first launch, allow roto under **System Settings → Privacy & Security → Accessibility** (shown as **Device Control and Data Access** on macOS 27). It is the only permission roto needs. To keep that permission across rebuilds, sign with a local certificate; see [Signing](docs/guide.md#signing-so-accessibility-sticks).
 
 Press ⌃⌥/ to see every shortcut.
 
@@ -80,6 +81,8 @@ roto reads `~/.config/roto/config.toml`, creates it on first run, and reloads it
 [apps]
 when_focused = "cycle"               # pressing again: cycle | hide | none
 ```
+
+To change keymaps without editing TOML, choose **Customize Shortcuts…** in the menu bar, or press ⌘, in the cheatsheet. Add, edit, or remove window, app, and popup shortcuts; type or record a key combination, then **Save**. Conflicts are checked before saving.
 
 Every key and value is in the [config reference](docs/config.md).
 
@@ -98,7 +101,7 @@ The app contains no network code: no analytics, no accounts, no update checks. C
 
 ```bash
 make run          # build, bundle, and open build/roto.app
-make test         # RotoCore unit tests (Swift Testing)
+make test         # core and native UI tests (Swift Testing)
 make brand        # redraw the icon and brand assets from BrandMark.swift
 make gen-emoji    # rebuild emoji.json from Unicode and CLDR (network, dev only)
 ```

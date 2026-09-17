@@ -19,6 +19,20 @@ public struct KeyCombo: Hashable, Sendable, Equatable {
     public static let optionBit: UInt32 = 1 << 11
     public static let controlBit: UInt32 = 1 << 12
 
+    /// Records the same physical keys used by the global hotkey registration.
+    public static func recorded(keyCode: UInt32, carbonModifiers: UInt32) throws -> KeyCombo {
+        guard let name = KeyCodes.name(for: keyCode) else {
+            throw ConfigError.validation("This key is not supported. Try another shortcut.")
+        }
+        var tokens: [String] = []
+        if carbonModifiers & controlBit != 0 { tokens.append("ctrl") }
+        if carbonModifiers & optionBit != 0 { tokens.append("alt") }
+        if carbonModifiers & shiftBit != 0 { tokens.append("shift") }
+        if carbonModifiers & cmdBit != 0 { tokens.append("cmd") }
+        tokens.append(name)
+        return try parse(tokens.joined(separator: "+"))
+    }
+
     public static func parse(_ raw: String) throws -> KeyCombo {
         let parts = raw.split(separator: "+").map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
             .filter { !$0.isEmpty }

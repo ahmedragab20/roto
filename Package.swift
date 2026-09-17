@@ -29,6 +29,13 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "RotoTests",
+            dependencies: [
+                "Roto",
+                .product(name: "Testing", package: "swift-testing"),
+            ]
+        ),
+        .testTarget(
             name: "RotoCoreTests",
             dependencies: [
                 "RotoCore",

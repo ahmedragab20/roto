@@ -45,6 +45,11 @@ struct CheatsheetTests {
         ])
     }
 
+    @Test func cheatsheetPointsToInteractiveEditor() {
+        let sheet = Cheatsheet.popupKeys.first { $0.title == "In this sheet" }
+        #expect(sheet?.entries.first { $0.keys == "⌘," }?.title == "Customize shortcuts")
+    }
+
     @Test func describesWindowActions() {
         #expect(Cheatsheet.describe(windowAction: "layout:editor") == "Layout “editor”")
         #expect(Cheatsheet.describe(windowAction: "maximize") == "Maximize")

@@ -53,4 +53,16 @@ public enum KeyCodes {
     public static func code(for name: String) -> UInt32? {
         names[name.lowercased()]
     }
+
+    /// Stable config token for a physical key, independent of the current input language.
+    public static func name(for code: UInt32) -> String? {
+        preferredNames[code]
+    }
+
+    private static let preferredNames: [UInt32: String] = {
+        let aliases: Set<String> = [
+            "=", "-", "]", "[", "return", "'", ";", "\\", ",", "/", ".", "`", "backspace", "esc",
+        ]
+        return Dictionary(uniqueKeysWithValues: names.filter { !aliases.contains($0.key) }.map { ($0.value, $0.key) })
+    }()
 }

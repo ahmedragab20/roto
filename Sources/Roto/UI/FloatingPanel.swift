@@ -1,6 +1,7 @@
 import AppKit
 import os
 import Quartz
+import SwiftUI
 import RotoCore
 
 /// Feeds Quick Look the files a popup wants to show.
@@ -51,7 +52,8 @@ final class FloatingPanel: NSPanel {
     init(size: NSSize) {
         super.init(
             contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
+            // Borderless panels already use the full content area; no titlebar extension is needed.
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -78,10 +80,14 @@ final class FloatingPanel: NSPanel {
         isVisible && generation % 2 == 1
     }
 
-    func embed(rootView: NSView, cornerRadius: CGFloat = 24) {
+    /// The panel owns its size; long SwiftUI lists must scroll rather than resize the window.
+    func embed<Content: View>(rootView: NSHostingView<Content>, cornerRadius: CGFloat = 24) {
+        rootView.sizingOptions = []
         let size = frame.size
         rootView.autoresizingMask = [.width, .height]
         if #available(macOS 26.0, *) {
+            // The additional window shadow leaves a hard dark rim around transparent glass.
+            hasShadow = false
             let glass = NSGlassEffectView(frame: NSRect(origin: .zero, size: size))
             glass.autoresizingMask = [.width, .height]
             glass.cornerRadius = cornerRadius

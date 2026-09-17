@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var emojiPanel: EmojiPanelController!
     private var windowSwitcher: WindowSwitcherController!
     private var cheatsheet: CheatsheetController!
+    private var keymapEditor: KeymapEditorController!
     private var history: ClipboardHistory!
     private var catalog: EmojiCatalog!
 
@@ -44,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         emojiPanel = EmojiPanelController(catalog: catalog)
         windowSwitcher = WindowSwitcherController()
         cheatsheet = CheatsheetController()
+        keymapEditor = KeymapEditorController()
         hotkeys = HotkeyCenter()
         watcher = ConfigWatcher()
         statusMenu = StatusMenu()
@@ -56,6 +58,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.watcher.config ?? ConfigLoader.builtin
         }
 
+        keymapEditor.onRecordingChanged = { [weak self] recording in
+            self?.hotkeys.setSuspended(recording)
+        }
+        keymapEditor.onSaved = { [weak self] in
+            self?.watcher.reload()
+        }
+        cheatsheet.onCustomize = { [weak self] in
+            self?.showKeymapEditor()
+        }
+        statusMenu.onCustomizeShortcuts = { [weak self] in
+            self?.showKeymapEditor()
+        }
         statusMenu.onReload = { [weak self] in
             self?.watcher.reload()
         }
@@ -109,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         emojiPanel.popupScreen = config.general.popupScreen
         windowSwitcher.popupScreen = config.general.popupScreen
         cheatsheet.popupScreen = config.general.popupScreen
+        keymapEditor.popupScreen = config.general.popupScreen
         if let bindings = try? ConfigLoader.bindings(in: config) {
             hotkeys.rebind(bindings)
         }
@@ -125,7 +140,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func showKeymapEditor() {
+        closePopups(except: keymapEditor)
+        keymapEditor.show()
+    }
+
     private func handle(_ action: BoundAction) {
+        // Ignore an already queued Carbon callback when recording has just started.
+        guard !keymapEditor.isRecording else { return }
         switch action {
         case .window(let command):
             switch command {
@@ -161,6 +183,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if keep !== emojiPanel { emojiPanel.dismiss(animated: false) }
         if keep !== windowSwitcher { windowSwitcher.dismiss(animated: false) }
         if keep !== cheatsheet { cheatsheet.dismiss(animated: false) }
+        if keep !== keymapEditor { keymapEditor.dismiss(animated: false) }
     }
 
     private func loadCatalog() -> EmojiCatalog {

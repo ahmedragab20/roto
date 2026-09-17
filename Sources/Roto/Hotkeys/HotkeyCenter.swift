@@ -7,6 +7,8 @@ final class HotkeyCenter: @unchecked Sendable {
     private var actions: [UInt32: BoundAction] = [:]
     private var handlerRef: EventHandlerRef?
     private let lock = NSLock()
+    private var bindings: [(KeyCombo, BoundAction)] = []
+    private var suspended = false
     var onAction: (@MainActor (BoundAction) -> Void)?
 
     deinit {
@@ -40,6 +42,8 @@ final class HotkeyCenter: @unchecked Sendable {
         unregisterAll()
         lock.lock()
         defer { lock.unlock() }
+        self.bindings = bindings
+        guard !suspended else { return }
         for (index, pair) in bindings.enumerated() {
             let id = UInt32(index + 1)
             let hotKeyID = EventHotKeyID(signature: OSType(0x726F746F), id: id) // 'roto'
@@ -57,6 +61,20 @@ final class HotkeyCenter: @unchecked Sendable {
                 actions[id] = pair.1
             }
         }
+    }
+
+    /// Unregister while recording so Carbon does not consume the chord before the popup sees it.
+    /// Reloads still update the stored bindings, which are restored when recording ends.
+    func setSuspended(_ value: Bool) {
+        lock.lock()
+        guard suspended != value else {
+            lock.unlock()
+            return
+        }
+        suspended = value
+        let current = bindings
+        lock.unlock()
+        rebind(current)
     }
 
     fileprivate func invoke(id: UInt32) {

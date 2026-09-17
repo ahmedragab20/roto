@@ -11,6 +11,7 @@ How to build roto, grant its permissions, and use each tool. For every config ke
 - [Clipboard history and emoji](#clipboard-history-and-emoji)
 - [Window switcher](#window-switcher)
 - [Cheatsheet](#cheatsheet)
+- [Customize shortcuts](#customize-shortcuts)
 - [Emoji catalog](#emoji-catalog)
 
 ## Requirements
@@ -22,28 +23,35 @@ How to build roto, grant its permissions, and use each tool. For every config ke
 
 ```bash
 make run          # build, bundle, open build/roto.app
-make test         # RotoCore unit tests (Swift Testing; test-only dependency)
+make test         # core and native UI tests (Swift Testing; test-only dependency)
 make install      # copy to /Applications/roto.app
 ```
 
-On first launch, grant **Accessibility**. roto uses it only to move, focus, close, and minimize windows and to synthesize paste / unicode insertion.
+On first launch, grant **Accessibility**, shown as **Device Control and Data Access** on macOS 27. roto uses this access only to move, focus, close, and minimize windows and to synthesize paste / unicode insertion.
 
-The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit.
+The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Customize Shortcuts…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit. Accessibility status is checked again whenever you open the menu, so grants and revocations made in System Settings do not leave a stale label.
 
 ## Signing (so Accessibility sticks)
 
-Ad-hoc signing (`codesign -s -`) changes the code identity on every rebuild, and macOS will ask for Accessibility again.
+Changes to an ad-hoc-signed build (`codesign -s -`) can invalidate its Accessibility approval. System Settings may still show an enabled entry for the previous build even though the new executable is not trusted.
 
 Create a stable local identity once:
 
+1. Open **Keychain Access**, not Passwords. In the menu bar at the top of the screen, choose **Keychain Access → Certificate Assistant → Create a Certificate…**.
+2. Set **Name** to `roto-dev`, **Identity Type** to **Self Signed Root**, and **Certificate Type** to **Code Signing**. Use the **login** keychain if asked.
+3. If the certificate is untrusted, double-click it, expand **Trust**, and set **Code Signing → Always Trust**, leaving other trust settings unchanged. Close the window and authenticate locally if asked.
+
+Quit any running copy of roto, then build with that identity:
+
 ```bash
-# Keychain Access → Certificate Assistant → Create a Certificate
-# Name: roto-dev  Identity Type: Self Signed Root  Certificate Type: Code Signing
-export CODESIGN_IDENTITY="roto-dev"
-make run
+CODESIGN_IDENTITY=roto-dev make run
 ```
 
-Then approve Accessibility for that identity once.
+Keep the private key in Keychain Access; there is no need to export it or add signing certificates to the repository.
+
+Then approve Accessibility for that identity once. Keep using the same certificate for subsequent builds; the bundle script automatically selects `roto-dev` when available.
+
+If window actions or pasting stop working after a rebuild, quit roto, remove its outdated entry from **System Settings → Privacy & Security → Accessibility** (or **Device Control and Data Access**), and add and enable the exact app bundle you launch (`build/roto.app` for local builds, or `/Applications/roto.app` for an installed copy). Then reopen roto without rebuilding again. Merely seeing an enabled entry with the same name does not verify the current executable’s approval. In older builds, **Reload config** refreshes a stale menu label, but does not repair approval or grant event-posting access.
 
 ## App shortcuts
 
@@ -56,6 +64,8 @@ Then approve Accessibility for that identity once.
 ## Clipboard history and emoji
 
 The popups open with the `[hotkeys] clipboard` / `emoji` combos. The app you were typing in keeps focus, so ↵ pastes (clipboard) or types the emoji straight into the field you were in. Without Accessibility permission macOS blocks the paste: the popup shows a banner, and the entry is still on the clipboard for ⌘V.
+
+Both popups keep a fixed viewport: longer results scroll instead of increasing the window height.
 
 Every word you type must match (in any order), matching ignores case and accents, and it tolerates small typos in words of 5+ letters. Clipboard results list whole-word matches first, newest first; emoji results favor commonly used and recently used emoji.
 
@@ -114,7 +124,15 @@ Windows on other Spaces are not listed one by one; their app appears as a "No wi
 
 ## Cheatsheet
 
-Keyboard Shortcuts… in the menu bar, or `[hotkeys] cheatsheet`, lists every shortcut from your current config (popups, apps, window layout, displays, focus) plus the keys inside each popup. Type to filter; ⌘, opens the config file.
+Keyboard Shortcuts… in the menu bar, or `[hotkeys] cheatsheet`, lists every shortcut from your current config (popups, apps, window layout, displays, focus) plus the keys inside each popup. Type to filter; click **Customize Shortcuts…** or press ⌘, to edit keymaps.
+
+## Customize shortcuts
+
+Open **Customize Shortcuts…** from the menu bar or cheatsheet. Filter the list, choose a window action, edit an app target, or change a shortcut directly. **Add Window**, **Add App**, and **Add Popup** create bindings; the trash button removes one. The window action menu includes all built-in actions and layouts already defined in your config.
+
+Click **Record** and press a combination with Control, Option, Shift, or Command. roto pauses its hotkeys while listening so the shortcut does not run its action. Esc stops recording; you can also type a combo such as `ctrl+alt+t`. macOS and other apps can reserve shortcuts that roto cannot capture or register.
+
+Click **Save** or press ⌘S to validate and apply the draft. **Cancel** (Esc when not recording) discards it. Clicking away only hides the draft; reopen the editor to continue. If the file changed elsewhere, **Discard & Reload**, then reapply your edits. To change layout geometry or non-keymap settings, use **Open config…**. See [Keymap editor](config.md#keymap-editor) for validation and saving details.
 
 ## Emoji catalog
 

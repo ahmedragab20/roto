@@ -15,6 +15,7 @@ final class CheatsheetController: NSObject, ObservableObject {
     var popupScreen: PopupScreen = .primary
     /// The config in effect (the last one that loaded without errors).
     var config: () -> Config = { ConfigLoader.builtin }
+    var onCustomize: (() -> Void)?
     private var allSections: [ShortcutSection] = []
     private var appNames: [String: String] = [:]
 
@@ -77,9 +78,8 @@ final class CheatsheetController: NSObject, ObservableObject {
         appNames[target] ?? target
     }
 
-    func openConfig() {
-        panel.dismiss(animated: false)
-        NSWorkspace.shared.open(Paths.configFile)
+    func customize() {
+        onCustomize?()
     }
 
     private func applyFilter() {
@@ -119,7 +119,7 @@ final class CheatsheetController: NSObject, ObservableObject {
             return true
         }
         if modifiers == .command, event.charactersIgnoringModifiers == "," {
-            openConfig()
+            customize()
             return true
         }
         return false
@@ -142,32 +142,45 @@ struct CheatsheetView: View {
             query: $model.query,
             placeholder: "Search shortcuts",
             status: model.shortcutCount == 1 ? "1 shortcut" : "\(model.shortcutCount) shortcuts",
-            hints: [KeyHint(keys: "⌘,", label: "Edit config"), KeyHint(keys: "esc", label: "Close")],
+            hints: [KeyHint(keys: "⌘,", label: "Customize"), KeyHint(keys: "esc", label: "Close")],
             needsAccessibility: false,
             onFieldCreated: model.attach
         ) {
-            if model.sections.isEmpty {
-                EmptyState(
-                    symbol: "keyboard",
-                    title: "No matches",
-                    message: "No shortcut matches “\(model.query)”."
-                )
-            } else {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 18) {
-                            ForEach(model.sections) { section in
-                                CheatsheetSection(section: section, model: model)
-                                    .id(section.id)
-                            }
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Current shortcuts")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Customize Shortcuts…", action: model.customize)
+                }
+                shortcutList
+            }
+        }
+    }
+
+    @ViewBuilder private var shortcutList: some View {
+        if model.sections.isEmpty {
+            EmptyState(
+                symbol: "keyboard",
+                title: "No matches",
+                message: "No shortcut matches “\(model.query)”."
+            )
+        } else {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 18) {
+                        ForEach(model.sections) { section in
+                            CheatsheetSection(section: section, model: model)
+                                .id(section.id)
                         }
-                        .padding(.vertical, 4)
-                        .padding(.trailing, 8)
                     }
-                    .onChange(of: model.scrollToTop) { _, _ in
-                        if let first = model.sections.first {
-                            proxy.scrollTo(first.id, anchor: .top)
-                        }
+                    .padding(.vertical, 4)
+                    .padding(.trailing, 8)
+                }
+                .onChange(of: model.scrollToTop) { _, _ in
+                    if let first = model.sections.first {
+                        proxy.scrollTo(first.id, anchor: .top)
                     }
                 }
             }
