@@ -1,0 +1,59 @@
+[general]
+launch_at_login = false
+popup_screen = "primary"
+
+[window]
+gap = 0
+
+[window.layouts]
+editor = { x = 0.0, y = 0.0, w = 0.6, h = 1.0 }
+
+[hotkeys.window]
+"ctrl+alt+left" = "half-left"
+"ctrl+alt+right" = "half-right"
+"ctrl+alt+up" = "half-top"
+"ctrl+alt+down" = "half-bottom"
+"ctrl+alt+u" = "quarter-top-left"
+"ctrl+alt+i" = "quarter-top-right"
+"ctrl+alt+j" = "quarter-bottom-left"
+"ctrl+alt+k" = "quarter-bottom-right"
+"ctrl+alt+d" = "third-left"
+"ctrl+alt+f" = "third-center"
+"ctrl+alt+g" = "third-right"
+"ctrl+alt+shift+d" = "two-thirds-left"
+"ctrl+alt+shift+g" = "two-thirds-right"
+"ctrl+alt+enter" = "maximize"
+"ctrl+alt+shift+enter" = "almost-maximize"
+"ctrl+alt+c" = "center"
+"ctrl+alt+cmd+right" = "next-display"
+"ctrl+alt+cmd+left" = "prev-display"
+"ctrl+alt+shift+h" = "focus-left"
+"ctrl+alt+shift+l" = "focus-right"
+"ctrl+alt+shift+k" = "focus-up"
+"ctrl+alt+shift+j" = "focus-down"
+"ctrl+alt+shift+right" = "focus-next-display"
+"ctrl+alt+shift+left" = "focus-prev-display"
+"ctrl+alt+e" = "layout:editor"
+
+[hotkeys.apps]
+"ctrl+alt+t" = "com.apple.Terminal"
+"ctrl+alt+b" = "Safari"
+
+[hotkeys]
+clipboard = "ctrl+alt+v"
+emoji = "ctrl+alt+period"
+windows = "ctrl+alt+w"                # window switcher
+cheatsheet = "ctrl+alt+slash"         # every shortcut, also in the menu bar
+
+[apps]
+when_focused = "cycle"               # app hotkey on an app already in front: cycle | hide | none
+
+[clipboard]
+history_size = 200
+max_age_days = 60                     # drop entries older than this; 0 keeps them forever
+persist = true
+include_images = true
+ignore_apps = ["com.1password.1password"]
+
+[emoji]
+skin_tone = "default"

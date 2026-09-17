@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>roto: Stop fixing Spotlight</title>
+  <meta name="description" content="Spotlight searches. roto does the rest. A native, local-only macOS menu bar agent for windows, apps, clipboard, and emoji.">
+  <meta name="theme-color" content="#0C0E13">
+  <meta property="og:title" content="roto: Stop fixing Spotlight">
+  <meta property="og:description" content="Spotlight searches. roto does the rest. Windows, apps, clipboard, and emoji in one native, local-only menu bar agent.">
+  <meta property="og:image" content="https://ahmedragab20.github.io/roto/assets/social-preview.png">
+  <meta property="og:url" content="https://ahmedragab20.github.io/roto/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <style>
+    :root {
+      --ink: #0C0E13;
+      --graphite: #2A2F3A;
+      --amber: #FFB547;
+      --vermilion: #FF5A36;
+      --paper: #F4F1EA;
+      --mist: #A9B0BD;
+      --slate: #7B8394;
+
+      --bg: var(--paper);
+      --surface: #FFFFFF;
+      --text: #14171D;
+      --muted: #555C69;
+      --line: rgba(20, 23, 29, 0.10);
+      --chip: rgba(20, 23, 29, 0.06);
+      --accent-text: #C2410C;
+      --code-bg: var(--ink);
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: var(--ink);
+        --surface: #151922;
+        --text: var(--paper);
+        --muted: var(--mist);
+        --line: rgba(244, 241, 234, 0.10);
+        --chip: rgba(244, 241, 234, 0.08);
+        --accent-text: var(--amber);
+        --code-bg: #151922;
+        color-scheme: dark;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    code, kbd, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .wrap { width: min(1080px, 100% - 32px); margin: 0 auto; }
+
+    header.top {
+      position: sticky; top: 0; z-index: 2;
+      backdrop-filter: saturate(160%) blur(16px);
+      -webkit-backdrop-filter: saturate(160%) blur(16px);
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      border-bottom: 1px solid var(--line);
+    }
+    header.top .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; }
+    .brand img { width: 26px; height: 26px; }
+    nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+    nav a { text-decoration: none; color: var(--muted); }
+    nav a:hover { color: var(--text); }
+
+    .hero { padding: 88px 0 72px; text-align: center; }
+    .hero img.icon { width: 168px; height: 168px; filter: drop-shadow(0 18px 40px rgba(255, 90, 54, 0.18)); }
+    h1 {
+      margin: 20px 0 12px;
+      font-size: clamp(44px, 8vw, 84px);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      font-weight: 800;
+    }
+    .gradient {
+      background: linear-gradient(135deg, var(--amber), var(--vermilion));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lede { max-width: 640px; margin: 0 auto; font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); }
+    .lede strong { color: var(--text); font-weight: 650; }
+    .actions { margin-top: 32px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .button {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px; border-radius: 999px; font-weight: 600; font-size: 16px; text-decoration: none;
+      border: 1px solid var(--line); background: var(--surface);
+    }
+    .button.primary { background: linear-gradient(135deg, var(--amber), var(--vermilion)); color: #1A0E08; border: 0; }
+    .button:focus-visible, nav a:focus-visible, .brand:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+    section { padding: 72px 0; border-top: 1px solid var(--line); }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 13px; font-weight: 700; color: var(--accent-text); margin: 0 0 10px; }
+    h2 { font-size: clamp(30px, 4.6vw, 46px); line-height: 1.08; letter-spacing: -0.03em; margin: 0 0 16px; font-weight: 750; }
+    .intro { max-width: 700px; color: var(--muted); margin: 0 0 36px; }
+
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 28px; }
+    .panel h3 { margin: 0 0 14px; font-size: 19px; letter-spacing: -0.01em; }
+    .stack { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .stack li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--chip); color: var(--muted); }
+    .stack li span:first-child { text-decoration: line-through; text-decoration-color: var(--vermilion); text-decoration-thickness: 2px; }
+    .stack li span:last-child { font-size: 14px; white-space: nowrap; }
+    .panel.roto { background: linear-gradient(160deg, var(--graphite), var(--ink)); color: var(--paper); border: 0; position: relative; overflow: hidden; }
+    .panel.roto::after { content: ""; position: absolute; inset: auto -80px -120px auto; width: 320px; height: 320px; background: radial-gradient(closest-side, rgba(255, 138, 61, 0.35), transparent); }
+    .panel.roto img { width: 64px; height: 64px; }
+    .panel.roto p { color: var(--mist); margin: 10px 0 18px; }
+    .facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; position: relative; z-index: 1; }
+    .facts li::before { content: "●"; color: var(--amber); margin-right: 10px; font-size: 11px; vertical-align: 2px; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; }
+    .feature h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; }
+    .feature p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+    kbd { display: inline-block; padding: 2px 8px; border-radius: 7px; background: var(--chip); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+    .stat b { display: block; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; }
+    .stat span { color: var(--muted); font-size: 14px; }
+    .note { color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+    .principles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 40px; }
+    .principles h3 { margin: 0 0 4px; font-size: 18px; }
+    .principles p { margin: 0; color: var(--muted); }
+
+    .wont { columns: 2; gap: 40px; padding-left: 20px; color: var(--muted); }
+    .wont li { margin-bottom: 8px; break-inside: avoid; }
+
+    pre { background: var(--code-bg); color: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; overflow-x: auto; font-size: 15px; line-height: 1.7; }
+    pre .c { color: var(--slate); }
+
+    footer { padding: 40px 0 64px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+    footer .sign { margin-right: auto; color: var(--text); font-weight: 650; }
+
+    @media (max-width: 860px) {
+      .compare, .principles { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .wont { columns: 1; }
+      nav a.hide-sm { display: none; }
+    }
+    @media (max-width: 560px) {
+      .features { grid-template-columns: 1fr; }
+      .hero { padding: 56px 0 48px; }
+      .stack li span:last-child { display: none; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .button { transition: transform 0.15s ease; }
+      .button:hover { transform: translateY(-1px); }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#top"><img src="assets/mark.svg" alt="">roto</a>
+      <nav aria-label="Primary">
+        <a class="hide-sm" href="#why">Why</a>
+        <a class="hide-sm" href="#tools">Tools</a>
+        <a class="hide-sm" href="#native">Native</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/ahmedragab20/roto">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <img class="icon" src="assets/icon-512.png" alt="roto app icon">
+      <h1>Stop fixing <span class="gradient">Spotlight.</span></h1>
+      <p class="lede"><strong>Spotlight searches. roto does the rest.</strong> Windows, apps, clipboard, and emoji in one native, local-only menu bar agent for macOS.</p>
+      <div class="actions">
+        <a class="button primary" href="#install">Build from source</a>
+        <a class="button" href="https://github.com/ahmedragab20/roto/blob/main/docs/why.md">Read why</a>
+        <a class="button" href="https://github.com/ahmedragab20/roto">View on GitHub</a>
+      </div>
+    </div>
+
+    <section id="why">
+      <div class="wrap">
+        <p class="eyebrow">Why replace, not fix</p>
+        <h2>Spotlight isn't the problem.<br>The pile of fixes is.</h2>
+        <p class="intro">What people miss on a Mac is rarely search. It's snapping a window, getting back last hour's copy, typing an emoji, jumping to the terminal. So they install a bigger launcher that rebuilds search to add those, or a stack of single-purpose apps. roto keeps Spotlight and replaces the stack.</p>
+        <div class="compare">
+          <div class="panel">
+            <h3>The usual stack</h3>
+            <ul class="stack">
+              <li><span>A launcher replacing Spotlight</span><span>second ⌘Space</span></li>
+              <li><span>A window tiler</span><span>own permissions</span></li>
+              <li><span>A clipboard manager</span><span>own updater</span></li>
+              <li><span>An emoji picker</span><span>own settings</span></li>
+              <li><span>An app hotkey tool</span><span>own shortcuts</span></li>
+              <li><span>A window switcher</span><span>own process</span></li>
+            </ul>
+          </div>
+          <div class="panel roto">
+            <img src="assets/icon-256.png" alt="">
+            <h3>roto</h3>
+            <p>One small agent next to Spotlight, not instead of it.</p>
+            <ul class="facts">
+              <li>One app, one process, one menu bar icon</li>
+              <li>One required permission: Accessibility</li>
+              <li>One plain-text config file</li>
+              <li>Zero accounts, zero network code</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tools">
+      <div class="wrap">
+        <p class="eyebrow">The tools</p>
+        <h2>Each one is a key away.<br>No palette in between.</h2>
+        <p class="intro">Every tool has its own hotkey and opens directly. Change any key in <code>~/.config/roto/config.toml</code>; roto reloads it as you save.</p>
+        <div class="features">
+          <div class="feature">
+            <h3>Window layout</h3>
+            <p>Halves, thirds, quarters, maximize, center, and moving between displays.</p>
+            <kbd>⌃⌥←</kbd> <kbd>⌃⌥→</kbd> <kbd>⌃⌥↩</kbd>
+          </div>
+          <div class="feature">
+            <h3>App hotkeys</h3>
+            <p>One chord opens an app, brings it forward, or cycles its windows.</p>
+            <kbd>⌃⌥T</kbd> <kbd>⌃⌥B</kbd>
+          </div>
+          <div class="feature">
+            <h3>Window switcher</h3>
+            <p>Every open window, searchable by title or app, with an inspector. Close, minimize, hide, or quit without leaving the keyboard.</p>
+            <kbd>⌃⌥W</kbd>
+          </div>
+          <div class="feature">
+            <h3>Clipboard history</h3>
+            <p>Text, images, and files with a preview pane. Pastes straight into the field you were in.</p>
+            <kbd>⌃⌥V</kbd>
+          </div>
+          <div class="feature">
+            <h3>Emoji picker</h3>
+            <p>Forgiving search across the full emoji set that types the result where your cursor is.</p>
+            <kbd>⌃⌥.</kbd>
+          </div>
+          <div class="feature">
+            <h3>Cheatsheet</h3>
+            <p>Every shortcut from your current config, searchable, also in the menu bar.</p>
+            <kbd>⌃⌥/</kbd>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="native">
+      <div class="wrap">
+        <p class="eyebrow">Native, fast, small</p>
+        <h2>Swift and AppKit.<br>Nothing to warm up.</h2>
+        <p class="intro">No Electron, no web views, no JavaScript runtime, no helper processes. Popups are built once and reused, search text is prepared when it arrives, and copied images wait on disk instead of in memory.</p>
+        <div class="stats">
+          <div class="stat"><b>~30 MB</b><span>memory at idle, all popups built</span></div>
+          <div class="stat"><b>~0.1%</b><span>CPU at idle</span></div>
+          <div class="stat"><b>~5 MB</b><span>the whole app, icon included</span></div>
+          <div class="stat"><b>4.7 ms</b><span>emoji search per keystroke</span></div>
+          <div class="stat"><b>0.7 ms</b><span>clipboard search, 200 entries</span></div>
+        </div>
+        <p class="note">Measured on an M1 Pro running macOS 27, release build. Search figures are medians.</p>
+        <div class="principles" style="margin-top: 40px">
+          <div><h3>Feels like the Mac</h3><p>Liquid Glass popups on macOS 26 and later, a scale-in like Spotlight's, and paste that lands in the app you were in without stealing its focus.</p></div>
+          <div><h3>Accessible</h3><p>VoiceOver labels and announcements, Reduce Motion, Increase Contrast, and a keyboard path for everything.</p></div>
+          <div><h3>Local only</h3><p>The app has no network code: no analytics, no accounts, no update checks. Clipboard history stays in files only you can read.</p></div>
+          <div><h3>Config is text</h3><p>One TOML file to read, diff, and keep in your dotfiles. A typo never breaks the app; the last good config stays active.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="wont">
+      <div class="wrap">
+        <p class="eyebrow">Honest limits</p>
+        <h2>What roto won't do.</h2>
+        <ul class="wont">
+          <li>Search files, apps, or the web. Spotlight does that well.</li>
+          <li>Plugins, extension stores, AI features, or sync.</li>
+          <li>Signed downloads or auto-update. You build it from source.</li>
+          <li>Run on macOS older than 14.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <p class="eyebrow">Install</p>
+        <h2>One clone, one make.</h2>
+        <p class="intro">Needs macOS 14 or later and the Swift command line tools (<code>xcode-select --install</code>; Xcode itself is not required). On first launch, allow roto under Privacy &amp; Security → Accessibility.</p>
+<pre><code><span class="c"># build, bundle, and copy to /Applications</span>
+git clone https://github.com/ahmedragab20/roto.git
+cd roto
+make install
+open /Applications/roto.app</code></pre>
+        <p class="note">Then press <kbd>⌃⌥/</kbd> to see every shortcut. Read the <a href="https://github.com/ahmedragab20/roto/blob/main/docs/guide.md">guide</a> and the <a href="https://github.com/ahmedragab20/roto/blob/main/docs/config.md">config reference</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span class="sign">Keep Spotlight. Replace the fixes.</span>
+      <a href="https://github.com/ahmedragab20/roto/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/ahmedragab20/roto/blob/main/docs/brand.md">Brand</a>
+      <a href="https://github.com/ahmedragab20/roto/blob/main/LICENSE">MIT License</a>
+    </div>
+  </footer>
+</body>
+</html>

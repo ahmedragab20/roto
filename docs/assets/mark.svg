@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="roto">
+  <defs>
+    <linearGradient id="roto-tiles" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFB547"/>
+      <stop offset="1" stop-color="#FF5A36"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#roto-tiles)">
+    <rect x="3.00" y="3.00" width="58.00" height="30.00" rx="9.00"/>
+    <rect x="67.00" y="3.00" width="30.00" height="58.00" rx="9.00"/>
+    <rect x="39.00" y="67.00" width="58.00" height="30.00" rx="9.00"/>
+    <rect x="3.00" y="39.00" width="30.00" height="58.00" rx="9.00"/>
+  </g>
+  <circle cx="50.00" cy="50.00" r="9.80" fill="#FFB547"/>
+</svg>
