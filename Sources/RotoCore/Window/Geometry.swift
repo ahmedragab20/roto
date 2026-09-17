@@ -31,7 +31,21 @@ public enum Geometry {
     }
 
     public static func displayIndex(containing rect: CGRect, frames: [CGRect]) -> Int? {
-        displayIndex(containing: CGPoint(x: rect.midX, y: rect.midY), frames: frames)
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        if let index = displayIndex(containing: center, frames: frames) { return index }
+
+        // A window can straddle unequal-height displays with its center in a desktop gap.
+        // Preserve center-based selection when possible, otherwise use the largest overlap.
+        let candidates = frames.enumerated().filter { !$0.element.isEmpty && !$0.element.isNull }
+        let overlapping = candidates.map { entry in
+            (index: entry.offset, area: area(rect.intersection(entry.element)))
+        }.filter { $0.area > 0 }
+        if let best = overlapping.max(by: { $0.area < $1.area }) { return best.index }
+
+        // Recover windows left outside the desktop after a display is disconnected.
+        return candidates.min { lhs, rhs in
+            distance(center, to: lhs.element) < distance(center, to: rhs.element)
+        }?.offset
     }
 
     public static func nextIndex(current: Int, count: Int, reverse: Bool) -> Int {
@@ -43,17 +57,19 @@ public enum Geometry {
         return (c + 1) % count
     }
 
-    /// Map `rect` from `source` to `target` by preserving fractional position and size.
+    /// Preserve fractional position and size where possible, keeping the result inside `target`.
     public static func mapRect(_ rect: CGRect, from source: CGRect, to target: CGRect) -> CGRect {
         let fx = source.width == 0 ? 0 : (rect.minX - source.minX) / source.width
         let fy = source.height == 0 ? 0 : (rect.minY - source.minY) / source.height
         let fw = source.width == 0 ? 1 : rect.width / source.width
         let fh = source.height == 0 ? 1 : rect.height / source.height
+        let width = min(max(0, fw * target.width), target.width)
+        let height = min(max(0, fh * target.height), target.height)
         return CGRect(
-            x: target.minX + fx * target.width,
-            y: target.minY + fy * target.height,
-            width: fw * target.width,
-            height: fh * target.height
+            x: min(max(target.minX + fx * target.width, target.minX), target.maxX - width),
+            y: min(max(target.minY + fy * target.height, target.minY), target.maxY - height),
+            width: width,
+            height: height
         )
     }
 
@@ -114,7 +130,13 @@ public enum Geometry {
             .map(\.offset)
     }
 
-    private static func area(_ r: CGRect) -> CGFloat { r.width * r.height }
+    private static func area(_ r: CGRect) -> CGFloat { r.isNull ? 0 : r.width * r.height }
+
+    private static func distance(_ point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return hypot(dx, dy)
+    }
 
     private static func overlap1D(_ a0: CGFloat, _ a1: CGFloat, _ b0: CGFloat, _ b1: CGFloat) -> CGFloat {
         max(0, min(a1, b1) - max(a0, b0))

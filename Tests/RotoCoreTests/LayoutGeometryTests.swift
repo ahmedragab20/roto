@@ -66,6 +66,39 @@ struct GeometryTests {
         #expect(Geometry.displayIndex(containing: CGRect(x: 1500, y: 10, width: 50, height: 50), frames: [left, right]) == 1)
     }
 
+    @Test func straddlingWindowUsesOverlapWhenCenterIsInDisplayGap() throws {
+        let frames = [
+            CGRect(x: -1600, y: 0, width: 1600, height: 1000),
+            CGRect(x: 0, y: 0, width: 2560, height: 1440),
+            CGRect(x: 2560, y: 0, width: 1920, height: 1080),
+        ]
+        let window = CGRect(x: 2200, y: 900, width: 1000, height: 500)
+        let current = try #require(Geometry.displayIndex(containing: window, frames: frames))
+        #expect(current == 1)
+        let next = Geometry.nextIndex(current: current, count: frames.count, reverse: false)
+        #expect(next == 2)
+        let destination = Geometry.mapRect(window, from: frames[current], to: frames[next])
+        #expect(frames[next].contains(destination))
+    }
+
+    @Test func offDesktopWindowUsesNearestDisplayAndEmptyDesktopHasNone() {
+        let left = CGRect(x: -1600, y: 0, width: 1600, height: 1000)
+        let right = CGRect(x: 0, y: 0, width: 2560, height: 1440)
+        let window = CGRect(x: -2200, y: 100, width: 100, height: 100)
+        #expect(Geometry.displayIndex(containing: window, frames: [right, left]) == 1)
+        #expect(Geometry.displayIndex(containing: window, frames: []) == nil)
+        let upper = CGRect(x: 0, y: 1440, width: 1200, height: 900)
+        #expect(Geometry.displayIndex(containing: CGRect(x: 0, y: 2500, width: 100, height: 100), frames: [right, upper]) == 1)
+    }
+
+    @Test func mappingClampsOversizedAndOffscreenWindowsToTarget() {
+        let source = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let target = CGRect(x: 200, y: -100, width: 400, height: 200)
+        let mapped = Geometry.mapRect(CGRect(x: -20, y: 80, width: 200, height: 80), from: source, to: target)
+        #expect(mapped == CGRect(x: 200, y: -60, width: 400, height: 160))
+        #expect(target.contains(mapped))
+    }
+
     @Test func nextIndexWraps() {
         #expect(Geometry.nextIndex(current: 0, count: 2, reverse: false) == 1)
         #expect(Geometry.nextIndex(current: 1, count: 2, reverse: false) == 0)

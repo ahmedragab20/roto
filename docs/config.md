@@ -83,7 +83,9 @@ ignore_apps = ["com.1password.1password"]
 skin_tone = "default"                # default | light | medium-light | medium | medium-dark | dark
 ```
 
-Hotkey tokens: `ctrl`/`control`, `alt`/`option`/`opt`, `cmd`/`command`, `shift`, plus a key (`left`, `enter`, `period`, `a`–`z`, `0`–`9`, `f1`–`f20`, …). At least one modifier is required. Duplicate combos are a config error.
+Hotkey tokens: `ctrl`/`control`, `alt`/`option`/`opt`, `cmd`/`command`, `shift`, plus a key (`left`, `enter`, `period`, `a`–`z`, `0`–`9`, `f1`–`f20`, …). At least one modifier is required. Duplicate physical combos are a config error across all keymap sections: aliases such as `.` / `period`, `return` / `enter`, and `backspace` / `delete` refer to the same keys. Changing modifiers produces a distinct combo.
+
+`[hotkeys]`, `[hotkeys.window]`, and `[hotkeys.apps]` must be tables; wrong-type values are rejected rather than silently disabling bindings. Empty tables are valid.
 
 ## Window actions
 
@@ -120,4 +122,4 @@ Values for `[hotkeys.window]`:
 
 ## Reloading
 
-roto watches `~/.config/roto/config.toml` and applies edits right away. A config with errors never stops the app: the last good config stays active, and the menu bar icon shows the error. The cheatsheet (⌃⌥/) always lists the shortcuts currently in effect.
+roto watches `~/.config/roto/config.toml` and applies edits right away. A config with errors never stops the app: the last good config stays active, and the menu bar icon shows the error. The cheatsheet (⌃⌥/) lists the shortcuts from the active config. Check the menu for registration warnings: macOS or another app can reserve a valid combination. **Reload config** retries registration. Events queued before a reload or recorder suspension cannot invoke a replacement binding.

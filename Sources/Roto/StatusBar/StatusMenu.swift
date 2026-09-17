@@ -13,6 +13,8 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     var onQuit: (() -> Void)?
     var onRequestAccessibility: (() -> Void)?
     private var lastError: String?
+    private var shortcutIssues: [String] = []
+    private var lastWindowIssue: String?
 
     init(
         statusItem: NSStatusItem? = nil,
@@ -24,6 +26,18 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         item.button?.image = Self.markImage
         item.menu = NSMenu()
         rebuild(error: nil)
+    }
+
+    func setShortcutIssues(_ issues: [String]) {
+        guard issues != shortcutIssues else { return }
+        shortcutIssues = issues
+        rebuild(error: lastError)
+    }
+
+    func setWindowIssue(_ issue: String?) {
+        guard issue != lastWindowIssue else { return }
+        lastWindowIssue = issue
+        rebuild(error: lastError)
     }
 
     func rebuild(error: String?) {
@@ -41,16 +55,19 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         menu.addItem(access)
         menuNeedsUpdate(menu)
 
-        if let error, !error.isEmpty {
-            let err = NSMenuItem(title: "Config error: \(error)", action: nil, keyEquivalent: "")
-            err.isEnabled = false
-            menu.addItem(err)
-            if let button = item.button {
-                button.image = NSImage(systemSymbolName: "exclamationmark.triangle", accessibilityDescription: "roto config error")
-                button.image?.isTemplate = true
-            }
-        } else {
+        var warnings = shortcutIssues
+        if let error, !error.isEmpty { warnings.insert("Config error: \(error)", at: 0) }
+        if let lastWindowIssue { warnings.append("Last window action: \(lastWindowIssue)") }
+        for warning in warnings {
+            let entry = NSMenuItem(title: warning, action: nil, keyEquivalent: "")
+            entry.isEnabled = false
+            menu.addItem(entry)
+        }
+        if warnings.isEmpty {
             item.button?.image = Self.markImage
+        } else if let button = item.button {
+            button.image = NSImage(systemSymbolName: "exclamationmark.triangle", accessibilityDescription: "roto needs attention")
+            button.image?.isTemplate = true
         }
 
         menu.addItem(.separator())

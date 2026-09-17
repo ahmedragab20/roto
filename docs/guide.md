@@ -7,6 +7,8 @@ How to build roto, grant its permissions, and use each tool. For every config ke
 - [Requirements](#requirements)
 - [Build and run](#build-and-run)
 - [Signing (so Accessibility sticks)](#signing-so-accessibility-sticks)
+- [Window movement and focus](#window-movement-and-focus)
+- [Shortcut troubleshooting](#shortcut-troubleshooting)
 - [App shortcuts](#app-shortcuts)
 - [Clipboard history and emoji](#clipboard-history-and-emoji)
 - [Window switcher](#window-switcher)
@@ -52,6 +54,31 @@ Keep the private key in Keychain Access; there is no need to export it or add si
 Then approve Accessibility for that identity once. Keep using the same certificate for subsequent builds; the bundle script automatically selects `roto-dev` when available.
 
 If window actions or pasting stop working after a rebuild, quit roto, remove its outdated entry from **System Settings → Privacy & Security → Accessibility** (or **Device Control and Data Access**), and add and enable the exact app bundle you launch (`build/roto.app` for local builds, or `/Applications/roto.app` for an installed copy). Then reopen roto without rebuilding again. Merely seeing an enabled entry with the same name does not verify the current executable’s approval. In older builds, **Reload config** refreshes a stale menu label, but does not repair approval or grant event-posting access.
+
+## Window movement and focus
+
+The default display shortcuts do two different things:
+
+| Keys | Action |
+| --- | --- |
+| ⌃⌥⌘← / ⌃⌥⌘→ | Move the focused window to the previous / next display |
+| ⌃⌥⇧← / ⌃⌥⇧→ | Focus a window on the previous / next display; do not move it |
+| ⌃⌥⇧H/J/K/L | Focus the nearest window left / down / up / right |
+
+Displays cycle left-to-right, then bottom-to-top for displays with the same horizontal origin. Moving preserves relative position and size where possible, while keeping the requested frame within the destination’s usable area (excluding the Dock and menu bar). A window straddling unequal-height displays is assigned by its center, or by largest overlap if its center lies in a desktop gap. A fully off-desktop window uses the nearest display.
+
+Some apps enforce minimum sizes or refuse move/resize requests, especially in native full-screen mode. roto reads back the actual size before the final positioning step and keeps the top-left corner reachable when a window cannot fit. An unmet request appears under **Last window action** in the menu; a successful subsequent move/resize clears it. Exit native full-screen or try another app to distinguish app restrictions from shortcut problems.
+
+Display focus chooses the frontmost eligible window on the adjacent display in the current visible Spaces. An empty adjacent display, or a single-display setup, leaves focus unchanged. Newer roto commands cancel pending delayed window raises and activation fallbacks from older requests.
+
+## Shortcut troubleshooting
+
+1. Check **Accessibility: granted** in the menu. If it is missing after rebuilding, follow [Signing](#signing-so-accessibility-sticks).
+2. Look for **Shortcut … unavailable** or a **Global shortcut handler unavailable** warning. These include the macOS error code; a valid config does not guarantee macOS accepted every global shortcut. Choose another combination if it is reserved, then use **Reload config** to retry. Successfully registered shortcuts remain active.
+3. For movement problems, check **Last window action** and use the move keys rather than the focus keys above.
+4. A config error keeps the last good config active. Physical aliases such as `ctrl+alt+.` and `ctrl+alt+period` cannot be assigned twice, even across different sections.
+
+`make test` covers geometry, validation, callback cancellation, registration failures, and frame-write behavior with controlled native boundaries. It does not certify another app’s Accessibility implementation or system shortcut reservations. After a rebuild, test both move directions across the connected displays, rapid focus changes, and popup/app shortcuts using disposable windows and non-sensitive text. Test close, quit, and clipboard deletion only on disposable data.
 
 ## App shortcuts
 

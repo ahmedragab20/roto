@@ -69,6 +69,29 @@ struct ConfigLoaderTests {
         }
     }
 
+    @Test(arguments: [(".", "period"), ("return", "enter"), ("backspace", "delete")])
+    func rejectsPhysicalAliasCollisions(alias: String, name: String) {
+        let toml = """
+            [hotkeys]
+            emoji = "ctrl+alt+\(name)"
+            [hotkeys.window]
+            "ctrl+alt+\(alias)" = "center"
+            """
+        #expect(throws: ConfigError.self) { try ConfigLoader.parse(toml) }
+    }
+
+    @Test(arguments: ["hotkeys = 'bad'", "[hotkeys]\nwindow = 'bad'", "[hotkeys]\napps = ['bad']", "window = 42", "apps = false"])
+    func rejectsMalformedKeymapTables(source: String) {
+        #expect(throws: ConfigError.self) { try ConfigLoader.parse(source) }
+    }
+
+    @Test func allowsEmptyKeymapTablesAndDistinctModifierChords() throws {
+        let empty = try ConfigLoader.parse("[hotkeys.window]\n[hotkeys.apps]\n")
+        #expect(try ConfigLoader.bindings(in: empty).isEmpty)
+        let distinct = try ConfigLoader.parse("[hotkeys.apps]\n'ctrl+.' = 'A'\n'ctrl+shift+period' = 'B'\n")
+        #expect(try ConfigLoader.bindings(in: distinct).count == 2)
+    }
+
     @Test func rejectsNegativeMaxAge() {
         let toml = """
             [clipboard]

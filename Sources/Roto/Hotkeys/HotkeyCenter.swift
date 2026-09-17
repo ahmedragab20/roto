@@ -2,69 +2,123 @@ import Carbon
 import Foundation
 import RotoCore
 
+/// Native boundary kept injectable so tests never register real global shortcuts.
+struct HotkeyBackend {
+    var install: (UnsafeMutableRawPointer) -> (OSStatus, EventHandlerRef?)
+    var register: (KeyCombo, UInt32) -> (OSStatus, EventHotKeyRef?)
+    var unregister: (EventHotKeyRef) -> Void
+    var removeHandler: (EventHandlerRef) -> Void
+
+    static var carbon: HotkeyBackend {
+        HotkeyBackend(
+            install: { userData in
+                var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+                var ref: EventHandlerRef?
+                let status = InstallEventHandler(GetApplicationEventTarget(), rotoHotkeyCallback, 1, &spec, userData, &ref)
+                return (status, ref)
+            },
+            register: { combo, id in
+                var ref: EventHotKeyRef?
+                let hotKeyID = EventHotKeyID(signature: OSType(0x726F746F), id: id)
+                let status = RegisterEventHotKey(combo.keyCode, combo.carbonModifiers, hotKeyID, GetApplicationEventTarget(), 0, &ref)
+                return (status, ref)
+            },
+            unregister: { UnregisterEventHotKey($0) },
+            removeHandler: { RemoveEventHandler($0) }
+        )
+    }
+}
+
+struct HotkeyIssue: Equatable, Sendable {
+    let shortcut: String?
+    let status: OSStatus
+
+    var message: String {
+        if let shortcut {
+            return "Shortcut \(shortcut) unavailable (macOS \(status)). Check conflicts, then Reload config."
+        }
+        return "Global shortcut handler unavailable (macOS \(status)). Try Reload config."
+    }
+}
+
 final class HotkeyCenter: @unchecked Sendable {
+    typealias Delivery = @MainActor @Sendable () -> Void
+    private let backend: HotkeyBackend
+    private let enqueue: (@escaping Delivery) -> Void
     private var refs: [EventHotKeyRef] = []
     private var actions: [UInt32: BoundAction] = [:]
     private var handlerRef: EventHandlerRef?
     private let lock = NSLock()
     private var bindings: [(KeyCombo, BoundAction)] = []
     private var suspended = false
+    private var registrationIssues: [HotkeyIssue] = []
+    private var installIssue: HotkeyIssue?
+    private var nextID: UInt32 = 1
+    private var generation: UInt64 = 0
     var onAction: (@MainActor (BoundAction) -> Void)?
+    var onIssuesChanged: (@MainActor ([HotkeyIssue]) -> Void)?
+
+    var issues: [HotkeyIssue] { lock.withLock { registrationIssues } }
+
+    init(backend: HotkeyBackend = .carbon, enqueue: @escaping (@escaping Delivery) -> Void = { work in
+        DispatchQueue.main.async(execute: work)
+    }) {
+        self.backend = backend
+        self.enqueue = enqueue
+    }
 
     deinit {
         unregisterAll()
-        if let handlerRef {
-            RemoveEventHandler(handlerRef)
-        }
+        if let handlerRef { backend.removeHandler(handlerRef) }
     }
 
     func install() {
         lock.lock()
-        defer { lock.unlock() }
-        guard handlerRef == nil else { return }
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        var ref: EventHandlerRef?
-        let userData = Unmanaged.passUnretained(self).toOpaque()
-        let status = InstallEventHandler(
-            GetApplicationEventTarget(),
-            rotoHotkeyCallback,
-            1,
-            &spec,
-            userData,
-            &ref
-        )
-        if status == noErr {
-            handlerRef = ref
+        guard handlerRef == nil else {
+            lock.unlock()
+            return
         }
+        let (status, ref) = backend.install(Unmanaged.passUnretained(self).toOpaque())
+        if status == noErr, let ref {
+            handlerRef = ref
+            installIssue = nil
+        } else {
+            installIssue = HotkeyIssue(shortcut: nil, status: status == noErr ? OSStatus(paramErr) : status)
+        }
+        registrationIssues = installIssue.map { [$0] } ?? []
+        lock.unlock()
+        publishIssues()
     }
 
     func rebind(_ bindings: [(KeyCombo, BoundAction)]) {
+        install() // A reload can recover from an earlier handler installation failure.
         unregisterAll()
         lock.lock()
-        defer { lock.unlock() }
         self.bindings = bindings
-        guard !suspended else { return }
-        for (index, pair) in bindings.enumerated() {
-            let id = UInt32(index + 1)
-            let hotKeyID = EventHotKeyID(signature: OSType(0x726F746F), id: id) // 'roto'
-            var ref: EventHotKeyRef?
-            let status = RegisterEventHotKey(
-                pair.0.keyCode,
-                pair.0.carbonModifiers,
-                hotKeyID,
-                GetApplicationEventTarget(),
-                0,
-                &ref
-            )
-            if status == noErr, let ref {
-                refs.append(ref)
-                actions[id] = pair.1
+        registrationIssues = installIssue.map { [$0] } ?? []
+        if !suspended, handlerRef != nil {
+            for (combo, action) in bindings {
+                // Never reuse a retired registration's ID, including after recorder suspension.
+                guard nextID != 0 else {
+                    registrationIssues.append(HotkeyIssue(shortcut: combo.canonical, status: OSStatus(paramErr)))
+                    continue
+                }
+                let id = nextID
+                nextID = id == .max ? 0 : id + 1
+                let (status, ref) = backend.register(combo, id)
+                if status == noErr, let ref {
+                    refs.append(ref)
+                    actions[id] = action
+                } else {
+                    registrationIssues.append(HotkeyIssue(shortcut: combo.canonical, status: status == noErr ? OSStatus(paramErr) : status))
+                }
             }
         }
+        lock.unlock()
+        publishIssues()
     }
 
-    /// Unregister while recording so Carbon does not consume the chord before the popup sees it.
-    /// Reloads still update the stored bindings, which are restored when recording ends.
+    /// Reloads update the stored bindings even while recording has unregistered the hotkeys.
     func setSuspended(_ value: Bool) {
         lock.lock()
         guard suspended != value else {
@@ -77,27 +131,34 @@ final class HotkeyCenter: @unchecked Sendable {
         rebind(current)
     }
 
-    fileprivate func invoke(id: UInt32) {
+    func invoke(id: UInt32) {
         lock.lock()
         let action = actions[id]
+        let request = generation
         lock.unlock()
         guard let action else { return }
-        DispatchQueue.main.async { [onAction] in
-            Task { @MainActor in
-                onAction?(action)
-            }
+        enqueue { [weak self, onAction] in
+            guard let self, self.lock.withLock({ self.generation == request && !self.suspended }) else { return }
+            onAction?(action)
+        }
+    }
+
+    private func publishIssues() {
+        let (snapshot, request) = lock.withLock { (registrationIssues, generation) }
+        enqueue { [weak self, onIssuesChanged] in
+            guard let self, self.lock.withLock({ self.generation == request }) else { return }
+            onIssuesChanged?(snapshot)
         }
     }
 
     private func unregisterAll() {
         lock.lock()
+        generation &+= 1
         let current = refs
         refs.removeAll()
         actions.removeAll()
         lock.unlock()
-        for ref in current {
-            UnregisterEventHotKey(ref)
-        }
+        for ref in current { backend.unregister(ref) }
     }
 }
 
@@ -117,7 +178,7 @@ private func rotoHotkeyCallback(
         nil,
         &hotKeyID
     )
-    guard status == noErr else { return noErr }
+    guard status == noErr, hotKeyID.signature == OSType(0x726F746F) else { return OSStatus(eventNotHandledErr) }
     let center = Unmanaged<HotkeyCenter>.fromOpaque(userData).takeUnretainedValue()
     center.invoke(id: hotKeyID.id)
     return noErr

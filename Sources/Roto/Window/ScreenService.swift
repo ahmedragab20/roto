@@ -47,6 +47,43 @@ final class ScreenService {
     }
 }
 
+/// A read-back-verified frame write, with an injectable AX boundary for native unit tests.
+struct WindowFrameWriter {
+    var setPosition: (CGPoint) -> AXError
+    var setSize: (CGSize) -> AXError
+    var readFrame: () -> CGRect?
+
+    func apply(_ requested: CGRect, bounds: CGRect? = nil) -> String? {
+        let initialMove = setPosition(requested.origin)
+        let resize = setSize(requested.size)
+        // Apps can enforce a minimum size or reject resizing. Position that actual size,
+        // not the requested one, so a small destination display keeps the titlebar reachable.
+        let size = readFrame()?.size ?? requested.size
+        var origin = requested.origin
+        if let bounds {
+            origin.x = min(max(origin.x, bounds.minX), max(bounds.minX, bounds.maxX - size.width))
+            origin.y = min(max(origin.y, bounds.minY), max(bounds.minY, bounds.maxY - size.height))
+        }
+        let finalMove = setPosition(origin)
+        guard let actual = readFrame() else {
+            return "Could not verify the window frame. Check Accessibility access and try again."
+        }
+        if abs(actual.minX - origin.x) > 1 || abs(actual.minY - origin.y) > 1 {
+            let failure = [finalMove, initialMove].first { $0 != .success }
+            let detail = failure.map { " (AX \($0.rawValue))" } ?? ""
+            return "Window position was not applied\(detail). The app may restrict movement."
+        }
+        if abs(actual.width - requested.width) > 1 || abs(actual.height - requested.height) > 1 {
+            let detail = resize == .success ? "" : " (AX \(resize.rawValue))"
+            return "The app did not accept the requested window size\(detail)."
+        }
+        if let bounds, actual.width > bounds.width + 1 || actual.height > bounds.height + 1 {
+            return "The window is larger than this display; its top-left corner was kept reachable."
+        }
+        return nil
+    }
+}
+
 enum AXSupport {
     static var isTrusted: Bool {
         AXIsProcessTrusted()
@@ -112,18 +149,18 @@ enum AXSupport {
         return size
     }
 
-    static func setPoint(_ element: AXUIElement, _ attribute: String, _ point: CGPoint) {
+    @discardableResult
+    static func setPoint(_ element: AXUIElement, _ attribute: String, _ point: CGPoint) -> AXError {
         var value = point
-        if let ax = AXValueCreate(.cgPoint, &value) {
-            AXUIElementSetAttributeValue(element, attribute as CFString, ax)
-        }
+        guard let ax = AXValueCreate(.cgPoint, &value) else { return .illegalArgument }
+        return AXUIElementSetAttributeValue(element, attribute as CFString, ax)
     }
 
-    static func setSize(_ element: AXUIElement, _ attribute: String, _ size: CGSize) {
+    @discardableResult
+    static func setSize(_ element: AXUIElement, _ attribute: String, _ size: CGSize) -> AXError {
         var value = size
-        if let ax = AXValueCreate(.cgSize, &value) {
-            AXUIElementSetAttributeValue(element, attribute as CFString, ax)
-        }
+        guard let ax = AXValueCreate(.cgSize, &value) else { return .illegalArgument }
+        return AXUIElementSetAttributeValue(element, attribute as CFString, ax)
     }
 
     static func frame(of window: AXUIElement) -> CGRect? {
@@ -133,10 +170,13 @@ enum AXSupport {
         return CGRect(origin: origin, size: size)
     }
 
-    static func setFrame(_ window: AXUIElement, _ axFrame: CGRect) {
-        setPoint(window, kAXPositionAttribute as String, axFrame.origin)
-        setSize(window, kAXSizeAttribute as String, axFrame.size)
-        setPoint(window, kAXPositionAttribute as String, axFrame.origin)
+    @discardableResult
+    static func setFrame(_ window: AXUIElement, _ axFrame: CGRect, bounds: CGRect? = nil) -> String? {
+        WindowFrameWriter(
+            setPosition: { setPoint(window, kAXPositionAttribute as String, $0) },
+            setSize: { setSize(window, kAXSizeAttribute as String, $0) },
+            readFrame: { frame(of: window) }
+        ).apply(axFrame, bounds: bounds)
     }
 
     static func windows(of pid: pid_t) -> [AXUIElement] {

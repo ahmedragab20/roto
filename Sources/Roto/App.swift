@@ -87,6 +87,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.hotkeys = nil
         }
 
+        hotkeys.onIssuesChanged = { [weak self] issues in
+            self?.statusMenu.setShortcutIssues(issues.map(\.message))
+        }
+        windowManager.onIssue = { [weak self] issue in
+            self?.statusMenu.setWindowIssue(issue)
+        }
         hotkeys.install()
         hotkeys.onAction = { [weak self] action in
             self?.handle(action)
@@ -141,6 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showKeymapEditor() {
+        WindowFocus.cancelPending()
         closePopups(except: keymapEditor)
         keymapEditor.show()
     }
@@ -148,6 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func handle(_ action: BoundAction) {
         // Ignore an already queued Carbon callback when recording has just started.
         guard !keymapEditor.isRecording else { return }
+        WindowFocus.cancelPending()
         switch action {
         case .window(let command):
             switch command {

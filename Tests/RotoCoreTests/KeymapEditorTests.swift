@@ -53,8 +53,10 @@ struct KeymapEditorTests {
         #expect(throws: ConfigError.self) { try KeymapEditor.hotkeys(from: [KeymapBinding(kind: .window, shortcut: "ctrl+alt+a", target: "missing")], config: config) }
     }
 
-    @Test func loadingAliasesNeverHidesExistingBindings() throws {
-        let config = try ConfigLoader.parse("[hotkeys.apps]\n\"ctrl+enter\" = \"A\"\n\"ctrl+return\" = \"B\"\n")
+    @Test func draftAliasesNeverHideExistingBindings() {
+        // An in-memory draft can still contain conflicts even though the file loader rejects them.
+        var config = Config()
+        config.hotkeys.apps = ["ctrl+enter": "A", "ctrl+return": "B"]
         #expect(KeymapEditor.bindings(in: config).count == 2)
     }
 

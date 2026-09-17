@@ -29,6 +29,32 @@ struct StatusMenuTests {
         #expect(access.isEnabled)
     }
 
+    @Test func actionIssuesSurviveConfigRefreshAndClearIndependently() throws {
+        _ = NSApplication.shared
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        defer { NSStatusBar.system.removeStatusItem(item) }
+        let controller = StatusMenu(statusItem: item, accessibilityStatus: { true })
+        controller.setShortcutIssues(["Shortcut ctrl+a unavailable (macOS -9878)."])
+        controller.setWindowIssue("Window position was not applied.")
+        controller.rebuild(error: "Example config error")
+        var titles = try #require(item.menu).items.map(\.title)
+        #expect(titles.contains("Shortcut ctrl+a unavailable (macOS -9878)."))
+        #expect(titles.contains("Last window action: Window position was not applied."))
+        #expect(titles.contains("Config error: Example config error"))
+        #expect(item.button?.image?.accessibilityDescription == "roto needs attention")
+
+        controller.setShortcutIssues([])
+        titles = try #require(item.menu).items.map(\.title)
+        #expect(!titles.contains { $0.hasPrefix("Shortcut ctrl+a") })
+        #expect(titles.contains("Last window action: Window position was not applied."))
+        controller.setWindowIssue(nil)
+        titles = try #require(item.menu).items.map(\.title)
+        #expect(!titles.contains { $0.hasPrefix("Last window action:") })
+        #expect(titles.contains("Config error: Example config error"))
+        controller.rebuild(error: nil)
+        #expect(item.button?.image?.accessibilityDescription == "roto")
+    }
+
     @Test func rebuiltMenuStillRefreshesWithoutChangingOtherItems() throws {
         _ = NSApplication.shared
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)

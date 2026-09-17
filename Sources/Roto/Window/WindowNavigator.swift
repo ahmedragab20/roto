@@ -19,24 +19,25 @@ final class WindowNavigator {
     func focus(_ direction: Direction) {
         guard let current = currentWindow() else { return }
         let others = listedWindows().filter { $0.number != current.number }
-        let origin = Geometry.axToCocoa(current.axFrame, primaryMaxY: screens.primaryMaxY)
-        let frames = others.map { Geometry.axToCocoa($0.axFrame, primaryMaxY: screens.primaryMaxY) }
+        let primaryMaxY = screens.primaryMaxY
+        let origin = Geometry.axToCocoa(current.axFrame, primaryMaxY: primaryMaxY)
+        let frames = others.map { Geometry.axToCocoa($0.axFrame, primaryMaxY: primaryMaxY) }
         guard let index = Geometry.nearestIndex(origin: origin, direction: direction, frames: frames) else { return }
         raise(others[index])
     }
 
     func focusAdjacentDisplay(reverse: Bool) {
         let displays = screens.displays
-        guard !displays.isEmpty else { return }
+        guard displays.count > 1 else { return }
         guard let current = currentWindow() else { return }
-        let cocoa = Geometry.axToCocoa(current.axFrame, primaryMaxY: screens.primaryMaxY)
+        let primaryMaxY = displays.first { $0.frame.origin == .zero }?.frame.maxY ?? screens.primaryMaxY
+        let cocoa = Geometry.axToCocoa(current.axFrame, primaryMaxY: primaryMaxY)
         let frames = displays.map(\.frame)
-        let currentIndex = Geometry.displayIndex(containing: cocoa, frames: frames) ?? 0
+        guard let currentIndex = Geometry.displayIndex(containing: cocoa, frames: frames) else { return }
         let next = Geometry.nextIndex(current: currentIndex, count: displays.count, reverse: reverse)
-        let target = displays[next].frame
         let candidates = listedWindows().filter { window in
-            let c = Geometry.axToCocoa(window.axFrame, primaryMaxY: screens.primaryMaxY)
-            return target.contains(CGPoint(x: c.midX, y: c.midY)) && window.number != current.number
+            let c = Geometry.axToCocoa(window.axFrame, primaryMaxY: primaryMaxY)
+            return Geometry.displayIndex(containing: c, frames: frames) == next && window.number != current.number
         }
         // CGWindowList is front-to-back; pick the frontmost on that display.
         if let front = candidates.first {
