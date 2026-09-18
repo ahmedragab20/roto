@@ -27,6 +27,7 @@ final class WindowSwitcherController: NSObject, ObservableObject {
     /// Once the user moves the selection, refreshes keep it instead of preselecting.
     private var userMoved = false
     private weak var searchField: NSTextField?
+    private var warmWork: DispatchWorkItem?
 
     private static let size = NSSize(width: 840, height: 520)
 
@@ -54,6 +55,35 @@ final class WindowSwitcherController: NSObject, ObservableObject {
 
     func prepare() {
         panel.contentView?.layoutSubtreeIfNeeded()
+        // Reading every app's windows takes long enough to see. Without a list
+        // that is already current, the popup opens on the previous one and
+        // reshuffles a frame later — and ↩ pressed in that frame picks the wrong
+        // window. Switching apps is what reorders it, so that is when it is reread.
+        for name in [
+            NSWorkspace.didActivateApplicationNotification,
+            NSWorkspace.didTerminateApplicationNotification,
+        ] {
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.scheduleWarm() }
+            }
+        }
+        scheduleWarm()
+    }
+
+    /// Rereads the window list once the user has settled on an app, never while
+    /// the popup is up (it does its own refresh then).
+    private func scheduleWarm() {
+        warmWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, !self.panel.isShown else { return }
+            self.refresh(keepSelection: false)
+        }
+        warmWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
 
     func toggle() {
@@ -74,6 +104,11 @@ final class WindowSwitcherController: NSObject, ObservableObject {
         applyFilter(keepSelection: false)
         panel.focusView = searchField
         panel.present(screen: popupScreen)
+        // Asking macOS costs a round trip to the permission daemon; do it after
+        // the window is up rather than in front of it.
+        PermissionCache.refresh { [weak self] permissions in
+            self?.previewsAllowed = permissions.canCaptureScreen
+        }
         refresh(keepSelection: false)
     }
 
@@ -174,9 +209,15 @@ final class WindowSwitcherController: NSObject, ObservableObject {
                 WindowCatalog.snapshot(apps: apps)
             }.value
             guard let self, generation == self.refreshGeneration else { return }
-            self.all = WindowList.sorted(snapshot.entries)
             self.elements = snapshot.elements
-            self.isLoading = false
+            if self.isLoading {
+                self.isLoading = false
+            }
+            // Nothing moved: leave the list as it is rather than republishing an
+            // identical one and making every visible row rebuild itself.
+            let sorted = WindowList.sorted(snapshot.entries)
+            guard sorted != self.all else { return }
+            self.all = sorted
             self.applyFilter(keepSelection: keepSelection || self.userMoved)
         }
     }
@@ -309,6 +350,7 @@ struct WindowSwitcherView: View {
                 LazyVStack(spacing: 2) {
                     ForEach(Array(model.results.enumerated()), id: \.element.id) { index, entry in
                         WindowRow(entry: entry, isSelected: index == model.selection, shortcut: index < 9 ? index + 1 : nil)
+                            .equatable()
                             .id(entry.id)
                             .onTapGesture(count: 2) {
                                 model.activate(at: index)
@@ -339,11 +381,17 @@ struct WindowSwitcherView: View {
     }
 }
 
-private struct WindowRow: View {
+private struct WindowRow: View, Equatable {
     let entry: WindowEntry
     let isSelected: Bool
     let shortcut: Int?
     @State private var hovering = false
+
+    /// Moving the selection must not rebuild every visible row, only the two
+    /// that changed; hover is this row's own state and drives itself.
+    nonisolated static func == (lhs: WindowRow, rhs: WindowRow) -> Bool {
+        lhs.entry == rhs.entry && lhs.isSelected == rhs.isSelected && lhs.shortcut == rhs.shortcut
+    }
 
     var body: some View {
         HStack(spacing: 10) {

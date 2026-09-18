@@ -55,15 +55,18 @@ Measured on an M1 Pro running macOS 27, release build:
 | --- | --- |
 | Memory at idle, all popups built | about 30 MB |
 | App size | about 5 MB |
-| Emoji search, 1,909 emoji, per keystroke | 4.7 ms median (5.7 ms p95) |
+| Emoji search, 1,909 emoji, per keystroke | 0.9 ms median (1.1 ms p95) |
 | Clipboard search, 200 entries including ten 1 MB texts | 0.7 ms median |
 
 A few choices keep it that way:
 
 - Popups are built once at launch and reused. A hotkey shows a window; it does not build one.
 - Search text is folded (case, accents, width) once, when an entry arrives, not on every keystroke.
+- Search rules an entry out by its characters before doing any fuzzy work, so a typo-tolerant match is only attempted where the letters could line up at all.
 - Copied images are stored once by content and, by default, kept on disk, so a history full of screenshots does not sit in memory.
 - Thumbnails are decoded off the main thread and downsampled, never at full size.
+- Asking macOS whether roto may paste costs a round trip to the permission daemon, about 6 ms. The answer is cached and refreshed off the main thread, so no popup waits on one to open.
+- Nothing polls the main thread while a popup is up. The watch for another app taking the keyboard runs on a background queue.
 
 It also behaves like a Mac app should:
 

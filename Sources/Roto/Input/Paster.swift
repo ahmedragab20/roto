@@ -48,7 +48,7 @@ enum Paster {
         let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"
         log.notice("""
             \(action, privacy: .public) front=\(front, privacy: .public) \
-            ax=\(AXIsProcessTrusted(), privacy: .public) post=\(CGPreflightPostEventAccess(), privacy: .public) \
+            ax=\(AXIsProcessTrusted(), privacy: .public) post=\(PermissionCache.current.canPostEvents, privacy: .public) \
             rotoActive=\(NSApp.isActive, privacy: .public) rotoKeyWindow=\(NSApp.keyWindow != nil, privacy: .public)
             """)
     }

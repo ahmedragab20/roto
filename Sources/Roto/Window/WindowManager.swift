@@ -1,8 +1,10 @@
 import AppKit
+import os
 import RotoCore
 
 @MainActor
 final class WindowManager {
+    private let log = Logger(subsystem: "dev.roto.app", category: "window")
     let screens: ScreenService
     var gap: CGFloat = 0
     var onIssue: ((String?) -> Void)?
@@ -18,8 +20,21 @@ final class WindowManager {
         default:
             break
         }
-        guard let window = AXSupport.focusedWindow(), let axFrame = AXSupport.frame(of: window) else {
-            onIssue?("No accessible focused window. Check Accessibility access and try again.")
+        // Only blame the permission when it is actually missing. Saying "check
+        // Accessibility access" while the menu reads "Accessibility: granted"
+        // sends people to a setting that is already correct.
+        guard AXSupport.isTrusted else {
+            onIssue?("Accessibility access is off, so roto cannot move windows. Turn it on in System Settings.")
+            return
+        }
+        let found = AXSupport.focusedWindowResult()
+        guard let window = found.window else {
+            log.notice("window command found no target: \(found.reason, privacy: .public)")
+            onIssue?(found.reason)
+            return
+        }
+        guard let axFrame = AXSupport.frame(of: window) else {
+            onIssue?("Could not read the focused window's position. The app may be busy; try again.")
             return
         }
         let displays = screens.displays

@@ -104,7 +104,7 @@ Every word you type must match (in any order), matching ignores case and accents
 | ⌘↵ / ⌘C | Copy without pasting (⌘C copies the entry when no search text is selected) |
 | ⌘1–⌘9 | Paste the Nth entry |
 | ⌘⌫ | Delete the entry |
-| ⌘Y | Quick Look the image or file |
+| ⌘Y | Quick Look the image or file; press it again to close the preview |
 | ⌘O | Open the image or file in its default app (Preview for images and PDFs) |
 | ↑ ↓, ⌃P ⌃N | Move |
 | ⌘↑ ⌘↓, Home, End | First / last |
@@ -113,6 +113,8 @@ Every word you type must match (in any order), matching ignores case and accents
 | esc | Clear search, then close |
 
 The clipboard popup shows a preview of the selected entry (full text, image, or file list) with its source app and time; it records text, images, and copied files.
+
+Quick Look belongs to the popup that opened it: closing the popup closes the preview with it, and clicking away closes both.
 
 **Emoji**
 
@@ -129,7 +131,7 @@ With an empty search the grid starts with Recently Used, then each Unicode group
 
 ## Window switcher
 
-`[hotkeys] windows` opens a searchable list of open windows: the current window first, then the rest front to back, then minimized windows, windows of hidden apps, and apps with no window on this Space. The window behind the current one is preselected, so the hotkey then ↵ flips back like ⌘⇥. Search matches window titles and app names.
+`[hotkeys] windows` opens a searchable list of open windows: the current window first, then the rest front to back, then minimized windows, windows of hidden apps, and apps with no window on this Space. The window behind the current one is preselected, so the hotkey then ↵ flips back like ⌘⇥. Search matches window titles and app names. The list is rebuilt in the background when you switch apps, so it is already in the right order when the popup opens instead of reshuffling a moment after.
 
 The right pane shows the window's app, size, position, display, and state, with a map of where it sits across your displays. Live window previews are optional: "Show live window previews…" asks for Screen Recording, and only the selected window is captured, in memory.
 

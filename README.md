@@ -47,7 +47,7 @@ Swift on AppKit, SwiftUI, the Accessibility API, and ScreenCaptureKit. No Electr
 | Memory at idle, all popups built | about 30 MB |
 | CPU at idle | about 0.1% |
 | App size | about 5 MB |
-| Emoji search per keystroke | 4.7 ms median |
+| Emoji search per keystroke | 0.9 ms median |
 | Clipboard search, 200 entries including ten 1 MB texts | 0.7 ms median |
 
 Measured on an M1 Pro running macOS 27, release build.

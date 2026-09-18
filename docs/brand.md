@@ -57,7 +57,7 @@ The Mac's own fonts: SF Pro for text, SF Mono for keys and code. The website loa
 ## Voice
 
 - Plain and short. Say what it does, in the words a person would use.
-- Specific over superlative: "4.7 ms per keystroke", not "blazing fast".
+- Specific over superlative: "0.9 ms per keystroke", not "blazing fast".
 - Only publish numbers we measured, and say what machine they came from.
 - Name the limits. Saying what roto won't do is part of the pitch.
 - Respect the alternatives. roto replaces a stack; it doesn't mock the parts.

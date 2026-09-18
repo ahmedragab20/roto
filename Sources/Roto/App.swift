@@ -105,6 +105,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         clipboardMonitor.start()
         AXSupport.promptIfNeeded()
+        // Answered off the main thread now, so the first popup never waits on it.
+        PermissionCache.refresh()
         statusMenu.rebuild(error: watcher.errorMessage)
 
         // Build both popups and the emoji index now so the first hotkey press is instant.

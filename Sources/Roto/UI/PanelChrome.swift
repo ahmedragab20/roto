@@ -247,13 +247,15 @@ enum PanelFocus {
 /// Speaks list selection changes; the VoiceOver cursor stays in the search field.
 @MainActor
 enum Announcer {
-    static func say(_ text: String) {
+    /// Autoclosed: selection moves on every arrow key, and with VoiceOver off the
+    /// announcement is never needed, so it is never built either.
+    static func say(_ text: @autoclosure () -> String) {
         guard NSWorkspace.shared.isVoiceOverEnabled, let window = NSApp.keyWindow else { return }
         NSAccessibility.post(
             element: window,
             notification: .announcementRequested,
             userInfo: [
-                .announcement: text,
+                .announcement: text(),
                 .priority: NSAccessibilityPriorityLevel.high.rawValue,
             ]
         )
@@ -262,16 +264,19 @@ enum Announcer {
 
 @MainActor
 enum AppIcons {
-    private static var cache: [String: NSImage] = [:]
+    /// Holds the misses too: a bundle ID with no app on disk would otherwise ask
+    /// Launch Services again for every row, on every keystroke.
+    private static var cache: [String: NSImage?] = [:]
 
     static func icon(bundleID: String?) -> NSImage? {
         guard let bundleID else { return nil }
         if let cached = cache[bundleID] {
             return cached
         }
-        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
-        let icon = NSWorkspace.shared.icon(forFile: url.path)
-        cache[bundleID] = icon
+        let icon = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
+            .map { NSWorkspace.shared.icon(forFile: $0.path) }
+        // Subscript assignment of nil would remove the key instead of storing the miss.
+        cache.updateValue(icon, forKey: bundleID)
         return icon
     }
 }

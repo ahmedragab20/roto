@@ -66,7 +66,9 @@ struct WindowFrameWriter {
         }
         let finalMove = setPosition(origin)
         guard let actual = readFrame() else {
-            return "Could not verify the window frame. Check Accessibility access and try again."
+            // Reached only after the window and its frame were already read, so
+            // Accessibility is working; it is this app that stopped answering.
+            return "Could not read the window frame back. The app may be busy; try again."
         }
         if abs(actual.minX - origin.x) > 1 || abs(actual.minY - origin.y) > 1 {
             let failure = [finalMove, initialMove].first { $0 != .success }
@@ -89,12 +91,6 @@ enum AXSupport {
         AXIsProcessTrusted()
     }
 
-    /// Synthetic ⌘V / typing needs the post-event permission, which follows the
-    /// Accessibility switch; check both so one stale answer cannot block pasting.
-    static var canPostEvents: Bool {
-        CGPreflightPostEventAccess() || AXIsProcessTrusted()
-    }
-
     @discardableResult
     static func promptIfNeeded() -> Bool {
         let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
@@ -108,12 +104,75 @@ enum AXSupport {
         return value
     }
 
+    /// Plain-language reason a lookup failed, so the menu can say something the
+    /// user can act on instead of a bare number.
+    static func describe(_ error: AXError) -> String {
+        switch error {
+        case .success: return "ok"
+        case .apiDisabled: return "Accessibility is off for roto"
+        case .noValue: return "nothing is focused"
+        case .attributeUnsupported: return "the app does not report its windows"
+        case .cannotComplete: return "the app did not answer"
+        case .invalidUIElement: return "the window is gone"
+        case .notImplemented: return "the app has no Accessibility support"
+        default: return "AX error \(error.rawValue)"
+        }
+    }
+
+    @MainActor
     static func focusedWindow() -> AXUIElement? {
-        let system = AXUIElementCreateSystemWide()
-        guard let appRef = copy(system, kAXFocusedApplicationAttribute as String) else { return nil }
-        let app = appRef as! AXUIElement
-        guard let windowRef = copy(app, kAXFocusedWindowAttribute as String) else { return nil }
-        return (windowRef as! AXUIElement)
+        focusedWindowResult().window
+    }
+
+    /// The window the user is working in, and why there is none when there is not.
+    ///
+    /// Never roto itself. Popups take keyboard focus without activating, so the
+    /// system-wide answer is roto while one is open and can still be roto for a
+    /// moment after it closes — and roto has no window to move. The frontmost
+    /// application is the fallback, and an app that publishes no focused window is
+    /// asked for its main one, then for its first window, because plenty of apps
+    /// only ever fill in one of the three.
+    @MainActor
+    static func focusedWindowResult() -> (window: AXUIElement?, reason: String) {
+        let ownPID = NSRunningApplication.current.processIdentifier
+        var app: AXUIElement?
+        var appPID: pid_t?
+
+        var value: CFTypeRef?
+        let lookup = AXUIElementCopyAttributeValue(
+            AXUIElementCreateSystemWide(),
+            kAXFocusedApplicationAttribute as CFString,
+            &value
+        )
+        if lookup == .success, let value {
+            let element = value as! AXUIElement
+            if let owner = pid(of: element), owner != ownPID {
+                app = element
+                appPID = owner
+            }
+        }
+        if app == nil, let front = NSWorkspace.shared.frontmostApplication,
+           front.processIdentifier != ownPID {
+            app = AXUIElementCreateApplication(front.processIdentifier)
+            appPID = front.processIdentifier
+        }
+        guard let app else {
+            return (nil, "no app is focused (\(describe(lookup)))")
+        }
+        let name = appPID.flatMap { NSRunningApplication(processIdentifier: $0)?.localizedName } ?? "That app"
+
+        var last = AXError.noValue
+        for attribute in [kAXFocusedWindowAttribute, kAXMainWindowAttribute] {
+            var ref: CFTypeRef?
+            last = AXUIElementCopyAttributeValue(app, attribute as CFString, &ref)
+            if last == .success, let ref {
+                return ((ref as! AXUIElement), "")
+            }
+        }
+        if let list = copy(app, kAXWindowsAttribute as String) as? [AXUIElement], let first = list.first {
+            return (first, "")
+        }
+        return (nil, "\(name) has no window roto can move (\(describe(last)))")
     }
 
     static func focusedElement() -> AXUIElement? {

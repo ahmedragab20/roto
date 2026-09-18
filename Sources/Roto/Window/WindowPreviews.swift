@@ -8,8 +8,9 @@ final class WindowPreviews {
     private var cache: [CGWindowID: NSImage] = [:]
     private var content: SCShareableContent?
 
+    /// Last known answer; asking macOS directly blocks for about 6 ms.
     var isAllowed: Bool {
-        CGPreflightScreenCaptureAccess()
+        PermissionCache.current.canCaptureScreen
     }
 
     func requestAccess() {
@@ -17,6 +18,7 @@ final class WindowPreviews {
            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
             NSWorkspace.shared.open(url)
         }
+        PermissionCache.refresh()
     }
 
     /// Windows change between showings; start fresh each time the switcher opens.

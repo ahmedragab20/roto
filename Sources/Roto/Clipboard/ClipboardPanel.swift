@@ -65,11 +65,16 @@ final class ClipboardPanelController: NSObject, ObservableObject {
     }
 
     func show() {
-        canPaste = AXSupport.canPostEvents
+        canPaste = PermissionCache.current.canPostEvents
         query = ""
         refresh(keepSelection: false)
         panel.focusView = searchField
         panel.present(screen: popupScreen)
+        // Asking macOS costs a round trip to the permission daemon; do it after
+        // the window is up, so a banner appears a frame late instead of the popup.
+        PermissionCache.refresh { [weak self] permissions in
+            self?.canPaste = permissions.canPostEvents
+        }
         announceSelection()
     }
 
@@ -120,13 +125,19 @@ final class ClipboardPanelController: NSObject, ObservableObject {
 
     /// Space-bar style preview of a copied image or file, over the popup.
     func quickLookSelected() {
+        // Already previewing: ⌘Y closes it again, whatever is selected by now —
+        // otherwise landing on a text entry left no way to dismiss it but a beep.
+        if panel.hideQuickLook() {
+            panel.makeKey()
+            return
+        }
         guard let item = selectedItem else { return }
         let urls = ClipboardFiles.urls(for: item)
         guard !urls.isEmpty else {
             NSSound.beep()
             return
         }
-        panel.toggleQuickLook(urls)
+        panel.showQuickLook(urls)
     }
 
     /// Opens a copied image or file in its default app (Preview for images and PDFs).
@@ -292,6 +303,7 @@ struct ClipboardPanelView: View {
                             isSelected: index == model.selection,
                             shortcut: index < 9 ? index + 1 : nil
                         )
+                        .equatable()
                         .id(item.id)
                         .onTapGesture(count: 2) {
                             model.paste(at: index)
@@ -322,11 +334,17 @@ struct ClipboardPanelView: View {
     }
 }
 
-struct ClipboardRow: View {
+struct ClipboardRow: View, Equatable {
     let item: ClipboardItem
     let isSelected: Bool
     let shortcut: Int?
     @State private var hovering = false
+
+    /// Moving the selection must not rebuild every visible row, only the two
+    /// that changed; hover is this row's own state and drives itself.
+    nonisolated static func == (lhs: ClipboardRow, rhs: ClipboardRow) -> Bool {
+        lhs.item == rhs.item && lhs.isSelected == rhs.isSelected && lhs.shortcut == rhs.shortcut
+    }
 
     var body: some View {
         HStack(spacing: 10) {

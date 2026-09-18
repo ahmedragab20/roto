@@ -98,12 +98,17 @@ final class EmojiPanelController: NSObject, ObservableObject {
     }
 
     func show() {
-        canPaste = AXSupport.canPostEvents
+        canPaste = PermissionCache.current.canPostEvents
         query = ""
         // Recents may have changed since the last showing.
         refresh()
         panel.focusView = searchField
         panel.present(screen: popupScreen)
+        // Asking macOS costs a round trip to the permission daemon; do it after
+        // the window is up, so a banner appears a frame late instead of the popup.
+        PermissionCache.refresh { [weak self] permissions in
+            self?.canPaste = permissions.canPostEvents
+        }
         announceSelection()
     }
 
