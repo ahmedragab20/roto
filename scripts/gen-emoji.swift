@@ -141,9 +141,12 @@ for line in testText.split(separator: "\n", omittingEmptySubsequences: false) {
 }
 
 func isExcluded(emoji: String, name: String, keywords: [String] = []) -> Bool {
+    // Keep in step with Sources/RotoCore/Emoji/EmojiPolicy.swift.
     let bannedEmoji: Set<String> = [
         "🇮🇱", "✡️", "🕎", "🕍", "🔯", "✝️", "☦️", "⛪", "💒", "🛐",
         "🎄", "🎅", "🤶", "🧑‍🎄",
+        "👼", "🛕", "🕉️", "☸️", "⛩️", "☯️", "🪯",
+        "👙", "🏳️\u{200D}⚧️", "⚧️", "🏳️\u{200D}🌈",
     ]
     let bannedNames: Set<String> = [
         "flag: israel",
@@ -160,6 +163,17 @@ func isExcluded(emoji: String, name: String, keywords: [String] = []) -> Bool {
         "santa claus",
         "mrs. claus",
         "mx claus",
+        "baby angel",
+        "hindu temple",
+        "om",
+        "wheel of dharma",
+        "shinto shrine",
+        "yin yang",
+        "khanda",
+        "bikini",
+        "transgender flag",
+        "transgender symbol",
+        "rainbow flag",
     ]
     let bannedSubstrings = [
         "israel",
@@ -173,6 +187,17 @@ func isExcluded(emoji: String, name: String, keywords: [String] = []) -> Bool {
         "hanukkah",
         "judaism",
         "jewish",
+        "hindu temple",
+        "wheel of dharma",
+        "dharma",
+        "shinto",
+        "taoist",
+        "yinyang",
+        "sikh",
+        "khanda",
+        "baby angel",
+        "bikini",
+        "rainbow flag",
     ]
     if bannedEmoji.contains(emoji) { return true }
     let nameKey = name.lowercased()

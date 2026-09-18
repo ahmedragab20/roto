@@ -6963,28 +6963,6 @@
     }
   },
   {
-    "emoji" : "👼",
-    "group" : "People & Body",
-    "keywords" : [
-      "angel",
-      "baby",
-      "church",
-      "face",
-      "fairy",
-      "fairytale",
-      "fantasy",
-      "tale"
-    ],
-    "name" : "baby angel",
-    "skinTones" : {
-      "dark" : "👼🏿",
-      "light" : "👼🏻",
-      "medium" : "👼🏽",
-      "medium-dark" : "👼🏾",
-      "medium-light" : "👼🏼"
-    }
-  },
-  {
     "emoji" : "🦸",
     "group" : "People & Body",
     "keywords" : [
@@ -14796,25 +14774,6 @@
     "name" : "mosque"
   },
   {
-    "emoji" : "🛕",
-    "group" : "Travel & Places",
-    "keywords" : [
-      "hindu",
-      "temple"
-    ],
-    "name" : "hindu temple"
-  },
-  {
-    "emoji" : "⛩️",
-    "group" : "Travel & Places",
-    "keywords" : [
-      "religion",
-      "shinto",
-      "shrine"
-    ],
-    "name" : "shinto shrine"
-  },
-  {
     "emoji" : "🕋",
     "group" : "Travel & Places",
     "keywords" : [
@@ -18123,20 +18082,6 @@
       "underwear"
     ],
     "name" : "shorts"
-  },
-  {
-    "emoji" : "👙",
-    "group" : "Objects",
-    "keywords" : [
-      "bathing",
-      "beach",
-      "bikini",
-      "clothing",
-      "pool",
-      "suit",
-      "swim"
-    ],
-    "name" : "bikini"
   },
   {
     "emoji" : "👚",
@@ -21782,43 +21727,6 @@
     "name" : "atom symbol"
   },
   {
-    "emoji" : "🕉️",
-    "group" : "Symbols",
-    "keywords" : [
-      "Hindu",
-      "om",
-      "religion"
-    ],
-    "name" : "om"
-  },
-  {
-    "emoji" : "☸️",
-    "group" : "Symbols",
-    "keywords" : [
-      "Buddhist",
-      "dharma",
-      "religion",
-      "wheel"
-    ],
-    "name" : "wheel of dharma"
-  },
-  {
-    "emoji" : "☯️",
-    "group" : "Symbols",
-    "keywords" : [
-      "difficult",
-      "lives",
-      "religion",
-      "tao",
-      "taoist",
-      "total",
-      "yang",
-      "yin",
-      "yinyang"
-    ],
-    "name" : "yin yang"
-  },
-  {
     "emoji" : "☪️",
     "group" : "Symbols",
     "keywords" : [
@@ -21841,21 +21749,6 @@
       "symbol"
     ],
     "name" : "peace symbol"
-  },
-  {
-    "emoji" : "🪯",
-    "group" : "Symbols",
-    "keywords" : [
-      "Deg",
-      "Fateh",
-      "Khalsa",
-      "Khanda",
-      "religion",
-      "Sikh",
-      "Sikhism",
-      "Tegh"
-    ],
-    "name" : "khanda"
   },
   {
     "emoji" : "♈",
@@ -22333,15 +22226,6 @@
       "sign"
     ],
     "name" : "male sign"
-  },
-  {
-    "emoji" : "⚧️",
-    "group" : "Symbols",
-    "keywords" : [
-      "symbol",
-      "transgender"
-    ],
-    "name" : "transgender symbol"
   },
   {
     "emoji" : "✖️",
@@ -23754,41 +23638,6 @@
       "white"
     ],
     "name" : "white flag"
-  },
-  {
-    "emoji" : "🏳️‍🌈",
-    "group" : "Flags",
-    "keywords" : [
-      "bisexual",
-      "flag",
-      "gay",
-      "genderqueer",
-      "glbt",
-      "glbtq",
-      "lesbian",
-      "lgbt",
-      "lgbtq",
-      "lgbtqia",
-      "pride",
-      "queer",
-      "rainbow",
-      "trans",
-      "transgender"
-    ],
-    "name" : "rainbow flag"
-  },
-  {
-    "emoji" : "🏳️‍⚧️",
-    "group" : "Flags",
-    "keywords" : [
-      "blue",
-      "flag",
-      "light",
-      "pink",
-      "transgender",
-      "white"
-    ],
-    "name" : "transgender flag"
   },
   {
     "emoji" : "🏴‍☠️",

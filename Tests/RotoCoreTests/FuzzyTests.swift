@@ -96,4 +96,41 @@ struct EmojiPolicyTests {
         #expect(!EmojiPolicy.isExcluded(emoji: "🙏", name: "folded hands", keywords: ["please"]))
         #expect(!EmojiPolicy.isExcluded(emoji: "🔔", name: "bell", keywords: ["church", "sound"]))
     }
+
+    @Test func excludesOtherFaithsButKeepsIslam() {
+        #expect(EmojiPolicy.isExcluded(emoji: "🛕", name: "hindu temple", keywords: ["hindu", "temple"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "🕉️", name: "om", keywords: ["Hindu", "religion"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "☸️", name: "wheel of dharma", keywords: ["Buddhist"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "⛩️", name: "shinto shrine", keywords: ["shinto"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "☯️", name: "yin yang", keywords: ["taoist"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "🪯", name: "khanda", keywords: ["Sikh"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "👼", name: "baby angel", keywords: ["church"]))
+
+        #expect(!EmojiPolicy.isExcluded(emoji: "🕌", name: "mosque", keywords: ["islam", "Muslim"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🕋", name: "kaaba", keywords: ["hajj", "islam"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "☪️", name: "star and crescent", keywords: ["islam"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "📿", name: "prayer beads", keywords: ["religion"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🧕", name: "woman with headscarf", keywords: ["hijab"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🌙", name: "crescent moon", keywords: ["ramadan"]))
+    }
+
+    @Test func excludesBikiniAndTransgenderSigns() {
+        #expect(EmojiPolicy.isExcluded(emoji: "👙", name: "bikini", keywords: ["swim"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "⚧️", name: "transgender symbol", keywords: ["transgender"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "🏳️\u{200D}⚧️", name: "transgender flag", keywords: ["transgender"]))
+        #expect(EmojiPolicy.isExcluded(emoji: "🏳️\u{200D}🌈", name: "rainbow flag", keywords: ["gay", "lgbt"]))
+    }
+
+    /// Matching stays narrow on purpose. CLDR files identity words into the
+    /// keywords of ordinary weather and clothing emoji, so a careless substring
+    /// takes the rainbow out of the sky along with the flag.
+    @Test func narrowMatchingSparesUnrelatedEmoji() {
+        let lgbtKeywords = ["gay", "genderqueer", "lgbt", "lgbtq", "transgender", "rainbow"]
+        #expect(!EmojiPolicy.isExcluded(emoji: "🌈", name: "rainbow", keywords: lgbtKeywords))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🪷", name: "lotus", keywords: ["Buddhism", "Hinduism", "flower"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "😇", name: "smiling face with halo", keywords: ["angel"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🕊️", name: "dove", keywords: ["bird", "peace"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🩱", name: "one-piece swimsuit", keywords: ["bathing", "swimsuit"]))
+        #expect(!EmojiPolicy.isExcluded(emoji: "🔱", name: "trident emblem", keywords: ["anchor", "poseidon"]))
+    }
 }
