@@ -6,20 +6,20 @@ Always lowercase: **roto**, even at the start of a sentence. Never "Roto" or "RO
 
 ## Idea
 
-**Spotlight searches. roto does the rest.**
+**⌘Space, and everything after it.**
 
-roto keeps Spotlight for search and replaces the pile of tools people install around it. The brand never attacks Spotlight or the apps it replaces; it argues for one small, native, local tool instead of a stack.
+roto takes ⌘Space for app search and replaces the pile of tools people install around it. The brand never attacks Spotlight or the apps it replaces; it argues for one small, native, local tool instead of a stack.
 
 | Use | Line |
 | --- | --- |
-| Primary tagline | Spotlight searches. roto does the rest. |
-| Headline | Stop fixing Spotlight. |
-| Sign-off | Keep Spotlight. Replace the fixes. |
-| Descriptor | A native, local-only menu bar agent for windows, apps, clipboard, and emoji. |
+| Primary tagline | ⌘Space, and everything after it. |
+| Headline | Replace the stack. |
+| Sign-off | One app. One config. No stack. |
+| Descriptor | A native, local-only menu bar agent for app search, windows, clipboard, and emoji. |
 
 ## Mark
 
-Four tiles turning around a spot. The spot is Spotlight; the tiles are the tools roto runs around it. The tiles also read as window halves and quarters, which is where roto started.
+Four tiles turning around a spot. The spot is what you are working on; the tiles are the tools roto turns around it. The tiles also read as window halves and quarters, which is where roto started.
 
 <p><img src="assets/icon-256.png" width="128" alt="roto app icon"> <img src="assets/mark.svg" width="96" alt="roto mark"></p>
 

@@ -5,8 +5,8 @@
 <h1 align="center">roto</h1>
 
 <p align="center">
-  <strong>Spotlight searches. roto does the rest.</strong><br>
-  Windows, apps, clipboard, and emoji in one native, local-only menu bar agent for macOS.
+  <strong>⌘Space, and everything after it.</strong><br>
+  App search, windows, clipboard, and emoji in one native, local-only menu bar agent for macOS.
 </p>
 
 <p align="center">
@@ -17,11 +17,11 @@
   <a href="PRIVACY.md">Privacy</a>
 </p>
 
-## Stop fixing Spotlight
+## Replace the stack
 
-Spotlight is good at search. What people miss on a Mac is everything else: snapping a window to a third, getting back last hour's copy, typing an emoji, jumping to the terminal with one chord. The usual fix is a bigger launcher that rebuilds search to add those, or a stack of single-purpose apps with their own permissions, updaters, and shortcuts.
+What people miss on a Mac is a handful of small things: opening an app with a few letters, snapping a window to a third, getting back last hour's copy, typing an emoji, jumping to the terminal with one chord. The usual fix is a bigger launcher that puts all of it behind one text box, or a stack of single-purpose apps with their own permissions, updaters, and shortcuts.
 
-roto keeps Spotlight and replaces the stack. Read the whole argument in [Stop fixing Spotlight](docs/why.md).
+roto takes ⌘Space for app search and replaces the stack. Spotlight stays for files and the web. Read the whole argument in [Replace the stack](docs/why.md).
 
 ## The tools
 

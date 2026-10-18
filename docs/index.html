@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>roto: Stop fixing Spotlight</title>
-  <meta name="description" content="Spotlight searches. roto does the rest. A native, local-only macOS menu bar agent for windows, apps, clipboard, and emoji.">
+  <title>roto: Replace the stack</title>
+  <meta name="description" content="⌘Space, and everything after it. A native, local-only macOS menu bar agent for app search, windows, clipboard, and emoji.">
   <meta name="theme-color" content="#0C0E13">
-  <meta property="og:title" content="roto: Stop fixing Spotlight">
-  <meta property="og:description" content="Spotlight searches. roto does the rest. Windows, apps, clipboard, and emoji in one native, local-only menu bar agent.">
+  <meta property="og:title" content="roto: Replace the stack">
+  <meta property="og:description" content="⌘Space, and everything after it. App search, windows, clipboard, and emoji in one native, local-only menu bar agent.">
   <meta property="og:image" content="https://ahmedragab20.github.io/roto/assets/social-preview.png">
   <meta property="og:url" content="https://ahmedragab20.github.io/roto/">
   <meta name="twitter:card" content="summary_large_image">
@@ -120,11 +120,12 @@
 
     .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .feature { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; }
+    .feature.wide { grid-column: 1 / -1; }
     .feature h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; }
     .feature p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
     kbd { display: inline-block; padding: 2px 8px; border-radius: 7px; background: var(--chip); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
 
-    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
     .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
     .stat b { display: block; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; }
     .stat span { color: var(--muted); font-size: 14px; }
@@ -179,8 +180,8 @@
   <main id="top">
     <div class="wrap hero">
       <img class="icon" src="assets/icon-512.png" alt="roto app icon">
-      <h1>Stop fixing <span class="gradient">Spotlight.</span></h1>
-      <p class="lede"><strong>Spotlight searches. roto does the rest.</strong> Windows, apps, clipboard, and emoji in one native, local-only menu bar agent for macOS.</p>
+      <h1>Replace the <span class="gradient">stack.</span></h1>
+      <p class="lede"><strong>⌘Space, and everything after it.</strong> App search, windows, clipboard, and emoji in one native, local-only menu bar agent for macOS.</p>
       <div class="actions">
         <a class="button primary" href="#install">Build from source</a>
         <a class="button" href="https://github.com/ahmedragab20/roto/blob/main/docs/why.md">Read why</a>
@@ -191,13 +192,13 @@
     <section id="why">
       <div class="wrap">
         <p class="eyebrow">Why replace, not fix</p>
-        <h2>Spotlight isn't the problem.<br>The pile of fixes is.</h2>
-        <p class="intro">What people miss on a Mac is rarely search. It's snapping a window, getting back last hour's copy, typing an emoji, jumping to the terminal. So they install a bigger launcher that rebuilds search to add those, or a stack of single-purpose apps. roto keeps Spotlight and replaces the stack.</p>
+        <h2>The gaps are small.<br>The pile of fixes isn't.</h2>
+        <p class="intro">What people miss on a Mac is a handful of small things: opening an app with a few letters, snapping a window, getting back last hour's copy, typing an emoji, jumping to the terminal. So they install a bigger launcher that puts it all behind one text box, or a stack of single-purpose apps. roto takes ⌘Space and replaces the stack.</p>
         <div class="compare">
           <div class="panel">
             <h3>The usual stack</h3>
             <ul class="stack">
-              <li><span>A launcher replacing Spotlight</span><span>second ⌘Space</span></li>
+              <li><span>An app launcher</span><span>own index</span></li>
               <li><span>A window tiler</span><span>own permissions</span></li>
               <li><span>A clipboard manager</span><span>own updater</span></li>
               <li><span>An emoji picker</span><span>own settings</span></li>
@@ -208,7 +209,7 @@
           <div class="panel roto">
             <img src="assets/icon-256.png" alt="">
             <h3>roto</h3>
-            <p>One small agent next to Spotlight, not instead of it.</p>
+            <p>One small agent on ⌘Space, with every tool a key away.</p>
             <ul class="facts">
               <li>One app, one process, one menu bar icon</li>
               <li>One required permission: Accessibility</li>
@@ -226,6 +227,11 @@
         <h2>Each one is a key away.<br>No palette in between.</h2>
         <p class="intro">Every tool has its own hotkey and opens directly. Change any key in <code>~/.config/roto/config.toml</code>; roto reloads it as you save.</p>
         <div class="features">
+          <div class="feature wide">
+            <h3>App search</h3>
+            <p>Type a few letters to open any installed app. It forgives typos, puts the apps you open most on top, and answers in the same frame as the keystroke.</p>
+            <kbd>⌘Space</kbd>
+          </div>
           <div class="feature">
             <h3>Window layout</h3>
             <p>Halves, thirds, quarters, maximize, a large centered size that leaves the desktop in view, and moving between displays.</p>
@@ -268,7 +274,8 @@
         <div class="stats">
           <div class="stat"><b>~30 MB</b><span>memory at idle, all popups built</span></div>
           <div class="stat"><b>~0.1%</b><span>CPU at idle</span></div>
-          <div class="stat"><b>~5 MB</b><span>the whole app, icon included</span></div>
+          <div class="stat"><b>~10 MB</b><span>the whole app, search library included</span></div>
+          <div class="stat"><b>0.04 ms</b><span>app search per keystroke</span></div>
           <div class="stat"><b>0.9 ms</b><span>emoji search per keystroke</span></div>
           <div class="stat"><b>0.7 ms</b><span>clipboard search, 200 entries</span></div>
         </div>
@@ -287,7 +294,7 @@
         <p class="eyebrow">Honest limits</p>
         <h2>What roto won't do.</h2>
         <ul class="wont">
-          <li>Search files, apps, or the web. Spotlight does that well.</li>
+          <li>Search files or the web. App search covers apps only, for now.</li>
           <li>Plugins, extension stores, AI features, or sync.</li>
           <li>Signed downloads or auto-update. You build it from source.</li>
           <li>Run on macOS older than 14.</li>
@@ -299,7 +306,7 @@
       <div class="wrap">
         <p class="eyebrow">Install</p>
         <h2>One clone, one make.</h2>
-        <p class="intro">Needs macOS 14 or later and the Swift command line tools (<code>xcode-select --install</code>; Xcode itself is not required). On first launch, allow roto under Privacy &amp; Security → Accessibility.</p>
+        <p class="intro">Needs macOS 14 or later, the Swift command line tools (<code>xcode-select --install</code>; Xcode itself is not required), and Rust (<a href="https://rustup.rs">rustup.rs</a>) to build the search library. On first launch, allow roto under Privacy &amp; Security → Accessibility.</p>
 <pre><code><span class="c"># build, bundle, and copy to /Applications</span>
 git clone https://github.com/ahmedragab20/roto.git
 cd roto
@@ -312,7 +319,7 @@ open /Applications/roto.app</code></pre>
 
   <footer>
     <div class="wrap">
-      <span class="sign">Keep Spotlight. Replace the fixes.</span>
+      <span class="sign">One app. One config. No stack.</span>
       <a href="https://github.com/ahmedragab20/roto/blob/main/PRIVACY.md">Privacy</a>
       <a href="https://github.com/ahmedragab20/roto/blob/main/docs/brand.md">Brand</a>
       <a href="https://github.com/ahmedragab20/roto/blob/main/LICENSE">MIT License</a>

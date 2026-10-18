@@ -1,8 +1,8 @@
 import CoreGraphics
 import Foundation
 
-/// roto's mark: four tiles turning around a center spot. Spotlight is the spot;
-/// the tiles are the tools roto runs around it. One geometry feeds the app icon,
+/// roto's mark: four tiles turning around a center spot. The spot is what you
+/// are working on; the tiles are the tools roto turns around it. One geometry feeds the app icon,
 /// the menu bar icon, and the website.
 public enum BrandMark {
     /// Long and short side of each tile as a share of the mark's width (they sum to 1).

@@ -88,6 +88,10 @@ Display focus chooses the frontmost eligible window on the adjacent display in t
 
 `[hotkeys] launcher` (⌘Space by default) opens app search. Type part of an app's name and press ↵ to open it. Opening an app that is already running brings it forward, like clicking its Dock icon.
 
+App search replaces Spotlight for opening apps. It does not search files, settings, or the web; Spotlight keeps doing that, on another key or from its menu bar icon.
+
+**Upgrading from an older roto.** roto never rewrites your config, so an existing `config.toml` does not get the new shortcut. Add `launcher = "cmd+space"` under `[hotkeys]`, or open **Customize Shortcuts… → Add Popup → App search** from the menu bar.
+
 Matching and ranking come from [fff](https://github.com/dmtrKovalenko/fff): typos are forgiven (`safri` finds Safari), word starts count (`sys set` finds System Settings), and apps you open often rise to the top. With an empty search, apps you have opened come first, then everything else by name.
 
 roto lists apps in `/Applications`, `~/Applications`, `/System/Applications`, and `/System/Library/CoreServices/Applications`, plus one level of subfolders (such as Utilities), and Finder. New and removed apps show up the next time the popup opens. A search costs well under a millisecond, so results change on the same keystroke.
@@ -95,7 +99,7 @@ roto lists apps in `/Applications`, `~/Applications`, `/System/Applications`, an
 **Take ⌘Space from Spotlight.** macOS gives ⌘Space to Spotlight before any app sees it. Until you turn that off, the menu bar shows a warning and ⌘Space keeps opening Spotlight:
 
 1. Open **System Settings → Keyboard → Keyboard Shortcuts… → Spotlight**.
-2. Turn off **Show Spotlight search**.
+2. Turn off **Show Spotlight search**, or double-click its key and give Spotlight a new one, such as ⌃⌥Space, to keep it for files.
 3. Press ⌘Space: roto's app search opens.
 
 To keep Spotlight on ⌘Space, bind app search to another key instead, for example `launcher = "alt+space"`.

@@ -136,9 +136,9 @@ struct MakeBrand {
         NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
         let left: CGFloat = 540
         draw("roto", font: .systemFont(ofSize: 150, weight: .bold), color: Palette.paper, at: CGPoint(x: left, y: 330))
-        draw("Spotlight searches.", font: .systemFont(ofSize: 44, weight: .semibold), color: Palette.paper, at: CGPoint(x: left + 6, y: 262))
-        draw("roto does the rest.", font: .systemFont(ofSize: 44, weight: .semibold), color: Palette.amber, at: CGPoint(x: left + 6, y: 208))
-        draw("Windows · apps · clipboard · emoji", font: .systemFont(ofSize: 28, weight: .medium), color: Palette.mist, at: CGPoint(x: left + 6, y: 140))
+        draw("⌘Space, and", font: .systemFont(ofSize: 44, weight: .semibold), color: Palette.paper, at: CGPoint(x: left + 6, y: 262))
+        draw("everything after it.", font: .systemFont(ofSize: 44, weight: .semibold), color: Palette.amber, at: CGPoint(x: left + 6, y: 208))
+        draw("Apps · windows · clipboard · emoji", font: .systemFont(ofSize: 28, weight: .medium), color: Palette.mist, at: CGPoint(x: left + 6, y: 140))
         draw("Native · local-only · open source", font: .systemFont(ofSize: 28, weight: .medium), color: Palette.slate, at: CGPoint(x: left + 6, y: 100))
         NSGraphicsContext.restoreGraphicsState()
         return ctx.makeImage()!
