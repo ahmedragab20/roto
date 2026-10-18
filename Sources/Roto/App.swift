@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var clipboardPanel: ClipboardPanelController!
     private var emojiPanel: EmojiPanelController!
     private var windowSwitcher: WindowSwitcherController!
+    private var appSearch: LauncherController!
     private var cheatsheet: CheatsheetController!
     private var keymapEditor: KeymapEditorController!
     private var history: ClipboardHistory!
@@ -44,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         clipboardPanel = ClipboardPanelController(history: history, monitor: clipboardMonitor)
         emojiPanel = EmojiPanelController(catalog: catalog)
         windowSwitcher = WindowSwitcherController()
+        appSearch = LauncherController()
         cheatsheet = CheatsheetController()
         keymapEditor = KeymapEditorController()
         hotkeys = HotkeyCenter()
@@ -78,6 +80,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusMenu.onShowWindows = { [weak self] in
             self?.handle(.windows)
+        }
+        statusMenu.onSearchApps = { [weak self] in
+            self?.handle(.launcher)
         }
         statusMenu.onRequestAccessibility = {
             AXSupport.promptIfNeeded()
@@ -118,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.clipboardPanel.prepare()
             self?.emojiPanel.prepare()
             self?.windowSwitcher.prepare()
+            self?.appSearch.prepare()
             self?.cheatsheet.prepare()
         }
     }
@@ -130,13 +136,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         clipboardPanel.popupScreen = config.general.popupScreen
         emojiPanel.popupScreen = config.general.popupScreen
         windowSwitcher.popupScreen = config.general.popupScreen
+        appSearch.popupScreen = config.general.popupScreen
         cheatsheet.popupScreen = config.general.popupScreen
         keymapEditor.popupScreen = config.general.popupScreen
         if let bindings = try? ConfigLoader.bindings(in: config) {
             hotkeys.rebind(bindings)
         }
+        statusMenu.setLauncherIssue(Self.spotlightIssue(launcher: config.hotkeys.launcher))
         statusMenu.rebuild(error: error)
         applyLaunchAtLogin(config.general.launchAtLogin)
+    }
+
+    /// macOS hands its own shortcuts to Spotlight before roto ever sees them.
+    private static func spotlightIssue(launcher: String?) -> String? {
+        guard let launcher, let combo = try? KeyCombo.parse(launcher) else { return nil }
+        let table = UserDefaults(suiteName: "com.apple.symbolichotkeys")?.dictionary(forKey: "AppleSymbolicHotKeys")
+        guard let conflict = SystemShortcuts.spotlightConflict(with: combo, table: table) else { return nil }
+        return "\(Cheatsheet.displayKeys(combo)) still opens Spotlight: turn off “\(conflict.title)” in Keyboard Shortcuts"
     }
 
     private func applyLaunchAtLogin(_ wanted: Bool) {
@@ -184,6 +200,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .cheatsheet:
             closePopups(except: cheatsheet)
             cheatsheet.toggle()
+        case .launcher:
+            closePopups(except: appSearch)
+            appSearch.toggle()
         }
     }
 
@@ -192,6 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if keep !== clipboardPanel { clipboardPanel.dismiss(animated: false) }
         if keep !== emojiPanel { emojiPanel.dismiss(animated: false) }
         if keep !== windowSwitcher { windowSwitcher.dismiss(animated: false) }
+        if keep !== appSearch { appSearch.dismiss(animated: false) }
         if keep !== cheatsheet { cheatsheet.dismiss(animated: false) }
         if keep !== keymapEditor { keymapEditor.dismiss(animated: false) }
     }

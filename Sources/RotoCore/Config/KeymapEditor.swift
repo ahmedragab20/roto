@@ -2,7 +2,7 @@ import Foundation
 import TOMLKit
 
 public enum KeymapKind: String, CaseIterable, Sendable {
-    case window, app, clipboard, emoji, windows, cheatsheet
+    case window, app, clipboard, emoji, windows, cheatsheet, launcher
 }
 
 public struct KeymapBinding: Identifiable, Equatable, Sendable {
@@ -54,7 +54,7 @@ public enum KeymapEditor {
                     throw ConfigError.validation("app hotkey '\(binding.shortcut)' has an empty app")
                 }
                 output.apps[binding.shortcut] = binding.target
-            case .clipboard, .emoji, .windows, .cheatsheet:
+            case .clipboard, .emoji, .windows, .cheatsheet, .launcher:
                 guard popups.insert(binding.kind).inserted else {
                     throw ConfigError.validation("multiple hotkeys.\(binding.kind.rawValue) popup rows")
                 }
@@ -63,6 +63,7 @@ public enum KeymapEditor {
                 case .emoji: output.emoji = binding.shortcut
                 case .windows: output.windows = binding.shortcut
                 case .cheatsheet: output.cheatsheet = binding.shortcut
+                case .launcher: output.launcher = binding.shortcut
                 default: break
                 }
             }
@@ -104,7 +105,10 @@ public enum KeymapEditor {
     }
 
     private static func popupValues(_ hotkeys: Config.Hotkeys) -> [(KeymapKind, String?)] {
-        [(.clipboard, hotkeys.clipboard), (.emoji, hotkeys.emoji), (.windows, hotkeys.windows), (.cheatsheet, hotkeys.cheatsheet)]
+        [
+            (.launcher, hotkeys.launcher), (.clipboard, hotkeys.clipboard), (.emoji, hotkeys.emoji),
+            (.windows, hotkeys.windows), (.cheatsheet, hotkeys.cheatsheet),
+        ]
     }
 
     private struct Replacement {

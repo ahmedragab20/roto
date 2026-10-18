@@ -16,6 +16,7 @@ struct KeymapEditorTests {
             emoji = "ctrl+alt+d"
             windows = "ctrl+alt+e"
             cheatsheet = "ctrl+alt+f"
+            launcher = "cmd+space"
             """)
         let rows = KeymapEditor.bindings(in: config)
         #expect(Set(rows.map(\.kind)) == Set(KeymapKind.allCases))
@@ -101,6 +102,7 @@ struct KeymapEditorTests {
             KeymapBinding(kind: .emoji, shortcut: "ctrl+4"),
             KeymapBinding(kind: .windows, shortcut: "ctrl+5"),
             KeymapBinding(kind: .cheatsheet, shortcut: "ctrl+6"),
+            KeymapBinding(kind: .launcher, shortcut: "ctrl+7"),
         ]
         var expected = try ConfigLoader.parse(source)
         expected.hotkeys = try KeymapEditor.hotkeys(from: rows, config: expected)

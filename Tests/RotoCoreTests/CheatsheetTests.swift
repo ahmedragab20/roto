@@ -28,7 +28,7 @@ struct CheatsheetTests {
         let sections = Cheatsheet.sections(for: config)
         #expect(sections.map(\.title) == [
             "Popups", "Apps", "Window layout", "Displays", "Window focus",
-            "In clipboard history", "In emoji picker", "In window switcher", "In this sheet",
+            "In app search", "In clipboard history", "In emoji picker", "In window switcher", "In this sheet",
         ])
         #expect(sections[0].entries.map(\.title) == ["Clipboard history"])
         #expect(sections[1].entries.first?.appTarget == "com.mitchellh.ghostty")
@@ -41,8 +41,15 @@ struct CheatsheetTests {
     @Test func emptySectionsAreDropped() {
         let sections = Cheatsheet.sections(for: Config())
         #expect(sections.map(\.title) == [
-            "In clipboard history", "In emoji picker", "In window switcher", "In this sheet",
+            "In app search", "In clipboard history", "In emoji picker", "In window switcher", "In this sheet",
         ])
+    }
+
+    @Test func launcherAppearsWithPopups() throws {
+        let config = try ConfigLoader.parse("[hotkeys]\nlauncher = \"cmd+space\"")
+        let popups = Cheatsheet.sections(for: config).first { $0.title == "Popups" }
+        #expect(popups?.entries.map(\.title) == ["Search apps"])
+        #expect(popups?.entries.first?.keys == "⌘Space")
     }
 
     @Test func cheatsheetPointsToInteractiveEditor() {

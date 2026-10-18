@@ -29,6 +29,7 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 
 | Tool | Default key | What it does |
 | --- | --- | --- |
+| App search | ⌘Space | Find and open any installed app; forgives typos and learns what you open |
 | Window layout | ⌃⌥← ⌃⌥→ ⌃⌥↑ ⌃⌥↓ … | Halves, thirds, quarters, maximize, large centered (⌃⌥⇧C), center, next display |
 | Window focus | ⌃⌥⇧H/J/K/L | Focus the window to the left, right, above, or below |
 | App hotkeys | ⌃⌥T, ⌃⌥B, your own | Open, focus, or cycle an app with one chord |
@@ -40,13 +41,14 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 
 ## Native, fast, small
 
-Swift on AppKit, SwiftUI, the Accessibility API, and ScreenCaptureKit. No Electron, no web views, no helper processes. One dependency, a TOML parser, compiled in.
+Swift on AppKit, SwiftUI, the Accessibility API, and ScreenCaptureKit. No Electron, no web views, no helper processes. Two dependencies, both compiled in: a TOML parser, and [fff](https://github.com/dmtrKovalenko/fff), the Rust search library behind app search.
 
 | Measure | Result |
 | --- | --- |
 | Memory at idle, all popups built | about 30 MB |
 | CPU at idle | about 0.1% |
-| App size | about 5 MB |
+| App size | about 10 MB (fff is about half) |
+| App search per keystroke, 96 apps | 0.04 ms median |
 | Emoji search per keystroke | 0.9 ms median |
 | Clipboard search, 200 entries including ten 1 MB texts | 0.7 ms median |
 
@@ -56,7 +58,7 @@ It behaves like a Mac app: Liquid Glass popups on macOS 26 and later, paste that
 
 ## Install
 
-Requires macOS 14 or later and the Swift command line tools (`xcode-select --install`; Xcode is not required).
+Requires macOS 14 or later, the Swift command line tools (`xcode-select --install`; Xcode is not required), and Rust ([rustup.rs](https://rustup.rs)) to build the search library.
 
 ```bash
 git clone https://github.com/ahmedragab20/roto.git
@@ -67,7 +69,7 @@ open /Applications/roto.app
 
 On first launch, allow roto under **System Settings → Privacy & Security → Accessibility** (shown as **Device Control and Data Access** on macOS 27). It is the only permission roto needs. To keep that permission across rebuilds, sign with a local certificate; see [Signing](docs/guide.md#signing-so-accessibility-sticks).
 
-Press ⌃⌥/ to see every shortcut.
+Press ⌃⌥/ to see every shortcut. App search uses ⌘Space: turn off Spotlight's shortcut first ([how](docs/guide.md#app-search)).
 
 ## Configure
 
@@ -88,7 +90,7 @@ Every key and value is in the [config reference](docs/config.md).
 
 ## What roto won't do
 
-- Search files, apps, or the web. Spotlight does that well.
+- Search files or the web. App search covers apps only, for now.
 - Plugins, extension stores, AI features, or sync.
 - Signed downloads or auto-update. You build it from source.
 - Run on macOS older than 14.
@@ -106,8 +108,9 @@ make brand        # redraw the icon and brand assets from BrandMark.swift
 make gen-emoji    # rebuild emoji.json from Unicode and CLDR (network, dev only)
 ```
 
-- `Sources/RotoCore`: config, search, clipboard history, window math, and the brand mark. No AppKit; covered by unit tests.
+- `Sources/RotoCore`: config, search, the app catalog, clipboard history, window math, and the brand mark. No AppKit; covered by unit tests.
 - `Sources/Roto`: the menu bar app, popups, hotkeys, and system integration.
+- `native/fff-bridge`: the Rust crate wrapping fff for app search, with its C header in `Sources/CFFFBridge`. `make fff` builds it; every other target does too.
 - `docs/`: the [guide](docs/guide.md), [config reference](docs/config.md), [why roto](docs/why.md), [brand guide](docs/brand.md), and the website.
 
 ## License

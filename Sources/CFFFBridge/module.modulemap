@@ -1,0 +1,5 @@
+module CFFFBridge [system] {
+    header "fff_bridge.h"
+    link "fff_bridge"
+    export *
+}

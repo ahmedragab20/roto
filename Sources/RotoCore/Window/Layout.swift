@@ -26,6 +26,7 @@ public enum BoundAction: Sendable, Equatable {
     case emoji
     case windows
     case cheatsheet
+    case launcher
 }
 
 public struct Layout {

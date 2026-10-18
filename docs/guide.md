@@ -9,6 +9,7 @@ How to build roto, grant its permissions, and use each tool. For every config ke
 - [Signing (so Accessibility sticks)](#signing-so-accessibility-sticks)
 - [Window movement and focus](#window-movement-and-focus)
 - [Shortcut troubleshooting](#shortcut-troubleshooting)
+- [App search](#app-search)
 - [App shortcuts](#app-shortcuts)
 - [Clipboard history and emoji](#clipboard-history-and-emoji)
 - [Window switcher](#window-switcher)
@@ -20,6 +21,7 @@ How to build roto, grant its permissions, and use each tool. For every config ke
 
 - macOS 14+
 - Swift 6 Command Line Tools (`xcode-select --install` is enough; Xcode is not required)
+- Rust (`cargo`, from [rustup.rs](https://rustup.rs)) to build [fff](https://github.com/dmtrKovalenko/fff), the search library behind app search
 
 ## Build and run
 
@@ -29,9 +31,11 @@ make test         # core and native UI tests (Swift Testing; test-only dependenc
 make install      # copy to /Applications/roto.app
 ```
 
+Every target builds `native/fff-bridge` (Rust) first; `make fff` builds only that. A bare `swift build` links the last library `make fff` produced.
+
 On first launch, grant **Accessibility**, shown as **Device Control and Data Access** on macOS 27. roto uses this access only to move, focus, close, and minimize windows and to synthesize paste / unicode insertion.
 
-The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Customize Shortcuts…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit. Accessibility status is checked again whenever you open the menu, so grants and revocations made in System Settings do not leave a stale label.
+The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Customize Shortcuts…, Search Apps…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit. Accessibility status is checked again whenever you open the menu, so grants and revocations made in System Settings do not leave a stale label.
 
 ## Signing (so Accessibility sticks)
 
@@ -79,6 +83,34 @@ Display focus chooses the frontmost eligible window on the adjacent display in t
 4. A config error keeps the last good config active. Physical aliases such as `ctrl+alt+.` and `ctrl+alt+period` cannot be assigned twice, even across different sections.
 
 `make test` covers geometry, validation, callback cancellation, registration failures, and frame-write behavior with controlled native boundaries. It does not certify another app’s Accessibility implementation or system shortcut reservations. After a rebuild, test both move directions across the connected displays, rapid focus changes, and popup/app shortcuts using disposable windows and non-sensitive text. Test close, quit, and clipboard deletion only on disposable data.
+
+## App search
+
+`[hotkeys] launcher` (⌘Space by default) opens app search. Type part of an app's name and press ↵ to open it. Opening an app that is already running brings it forward, like clicking its Dock icon.
+
+Matching and ranking come from [fff](https://github.com/dmtrKovalenko/fff): typos are forgiven (`safri` finds Safari), word starts count (`sys set` finds System Settings), and apps you open often rise to the top. With an empty search, apps you have opened come first, then everything else by name.
+
+roto lists apps in `/Applications`, `~/Applications`, `/System/Applications`, and `/System/Library/CoreServices/Applications`, plus one level of subfolders (such as Utilities), and Finder. New and removed apps show up the next time the popup opens. A search costs well under a millisecond, so results change on the same keystroke.
+
+**Take ⌘Space from Spotlight.** macOS gives ⌘Space to Spotlight before any app sees it. Until you turn that off, the menu bar shows a warning and ⌘Space keeps opening Spotlight:
+
+1. Open **System Settings → Keyboard → Keyboard Shortcuts… → Spotlight**.
+2. Turn off **Show Spotlight search**.
+3. Press ⌘Space: roto's app search opens.
+
+To keep Spotlight on ⌘Space, bind app search to another key instead, for example `launcher = "alt+space"`.
+
+**Keys**
+
+| Key | Action |
+| --- | --- |
+| ↵ | Open the app |
+| ⌘↵ | Show the app in Finder |
+| ⌘1–⌘9 | Open result 1–9 |
+| ↑ ↓, ⌃P ⌃N | Move |
+| ⌘↑ ⌘↓ | First / last result |
+| Page Up / Page Down | Move 7 rows |
+| esc | Clear search, then close |
 
 ## App shortcuts
 

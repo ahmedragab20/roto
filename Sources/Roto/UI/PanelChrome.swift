@@ -279,6 +279,19 @@ enum AppIcons {
         cache.updateValue(icon, forKey: bundleID)
         return icon
     }
+
+    private static var pathCache: [String: NSImage] = [:]
+
+    /// Finder's icon for a bundle on disk. Launch Services hands back an image
+    /// that renders lazily, so a miss costs little more than the lookup.
+    static func icon(path: String) -> NSImage {
+        if let cached = pathCache[path] {
+            return cached
+        }
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        pathCache[path] = icon
+        return icon
+    }
 }
 
 @MainActor

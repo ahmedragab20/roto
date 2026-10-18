@@ -36,7 +36,7 @@ final class KeymapEditorController: ObservableObject {
     var hasChanges: Bool { bindings != initialBindings }
     var windowActions: [String] { KeymapEditor.windowActions(in: config) }
     var availablePopups: [KeymapKind] {
-        [.clipboard, .emoji, .windows, .cheatsheet].filter { kind in
+        [.launcher, .clipboard, .emoji, .windows, .cheatsheet].filter { kind in
             !bindings.contains { $0.kind == kind }
         }
     }
@@ -185,6 +185,7 @@ private extension KeymapKind {
         case .emoji: "Emoji picker"
         case .windows: "Window switcher"
         case .cheatsheet: "Cheatsheet"
+        case .launcher: "App search"
         }
     }
 }

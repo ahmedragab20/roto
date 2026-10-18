@@ -58,6 +58,7 @@ public enum ConfigLoader {
         "ctrl+alt+b" = "Safari"
 
         [hotkeys]
+        launcher = "cmd+space"
         clipboard = "ctrl+alt+v"
         emoji = "ctrl+alt+period"
         windows = "ctrl+alt+w"
@@ -183,6 +184,13 @@ public enum ConfigLoader {
                         config.hotkeys.cheatsheet = string
                     } else {
                         errors.append("hotkeys.cheatsheet must be a string")
+                    }
+                }
+                if let value = hotkeys["launcher"] {
+                    if let string = value.string {
+                        config.hotkeys.launcher = string
+                    } else {
+                        errors.append("hotkeys.launcher must be a string")
                     }
                 }
             } else {
@@ -315,6 +323,9 @@ public enum ConfigLoader {
         }
         if let raw = config.hotkeys.cheatsheet {
             try add(raw, .cheatsheet, origin: "hotkeys.cheatsheet")
+        }
+        if let raw = config.hotkeys.launcher {
+            try add(raw, .launcher, origin: "hotkeys.launcher")
         }
         return result
     }

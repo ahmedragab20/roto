@@ -3,4 +3,5 @@ build/
 .swiftpm/
 *.xcodeproj
 .DS_Store
+native/fff-bridge/target/
 /*.app

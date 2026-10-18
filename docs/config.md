@@ -8,7 +8,7 @@ Choose **Customize Shortcuts…** from the menu bar or the cheatsheet (⌘,). Th
 
 - `[hotkeys.window]`: add, change, or remove bindings for built-in window actions and existing `layout:NAME` layouts.
 - `[hotkeys.apps]`: add, change, or remove bindings using a bundle ID, app name, or `.app` path.
-- `[hotkeys]`: change, remove, or add the `clipboard`, `emoji`, `windows`, and `cheatsheet` shortcuts. Each popup can have one shortcut; removing it disables that hotkey.
+- `[hotkeys]`: change, remove, or add the `launcher`, `clipboard`, `emoji`, `windows`, and `cheatsheet` shortcuts. Each popup can have one shortcut; removing it disables that hotkey.
 
 Type a combo directly, or click **Record** and press it. Recording requires a modifier and uses the same physical key positions as TOML hotkeys. roto’s global hotkeys pause only while recording; Esc or **Stop Recording** ends recording without changing the previous combo. Shortcuts reserved by macOS or another app may not reach the recorder; typing a combo does not override those reservations.
 
@@ -64,6 +64,7 @@ editor = { x = 0.0, y = 0.0, w = 0.6, h = 1.0 }
 "ctrl+alt+b" = "Safari"
 
 [hotkeys]
+launcher = "cmd+space"                # app search; turn off Spotlight's ⌘Space first
 clipboard = "ctrl+alt+v"
 emoji = "ctrl+alt+period"
 windows = "ctrl+alt+w"                # window switcher

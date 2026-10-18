@@ -1,6 +1,10 @@
-.PHONY: build bundle run install test gen-emoji brand
+.PHONY: fff build bundle run install test gen-emoji brand
 
-build:
+# App search links fff (Rust) as a static library; needs cargo (rustup.rs).
+fff:
+	bash scripts/build-fff.sh
+
+build: fff
 	swift build -c release --product roto
 
 bundle:
@@ -13,7 +17,7 @@ install: bundle
 	rm -rf /Applications/roto.app
 	cp -R build/roto.app /Applications/roto.app
 
-test:
+test: fff
 	swift test --enable-swift-testing --disable-xctest
 
 gen-emoji:

@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+bash "$ROOT/scripts/build-fff.sh"
 swift build -c release --product roto
 
 APP="$ROOT/build/roto.app"

@@ -41,6 +41,7 @@ editor = { x = 0.0, y = 0.0, w = 0.6, h = 1.0 }
 "ctrl+alt+b" = "Safari"
 
 [hotkeys]
+launcher = "cmd+space"                # app search; turn off Spotlight's ⌘Space first (see docs/guide.md)
 clipboard = "ctrl+alt+v"
 emoji = "ctrl+alt+period"
 windows = "ctrl+alt+w"                # window switcher

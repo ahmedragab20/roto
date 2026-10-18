@@ -47,13 +47,15 @@ public struct Config: Sendable, Equatable {
         public var emoji: String?
         public var windows: String?
         public var cheatsheet: String?
+        public var launcher: String?
         public init(
             window: [String: String] = [:],
             apps: [String: String] = [:],
             clipboard: String? = nil,
             emoji: String? = nil,
             windows: String? = nil,
-            cheatsheet: String? = nil
+            cheatsheet: String? = nil,
+            launcher: String? = nil
         ) {
             self.window = window
             self.apps = apps
@@ -61,6 +63,7 @@ public struct Config: Sendable, Equatable {
             self.emoji = emoji
             self.windows = windows
             self.cheatsheet = cheatsheet
+            self.launcher = launcher
         }
     }
 
@@ -170,5 +173,15 @@ public enum Paths {
 
     public static var emojiRecentsFile: URL {
         supportDirectory.appendingPathComponent("emoji-recents.json")
+    }
+
+    /// One empty file per installed app, named for it, for fff to index.
+    public static var appIndexDirectory: URL {
+        supportDirectory.appendingPathComponent("app-index", isDirectory: true)
+    }
+
+    /// fff's record of which apps were opened when, for ranking.
+    public static var appFrecencyDirectory: URL {
+        supportDirectory.appendingPathComponent("app-frecency", isDirectory: true)
     }
 }

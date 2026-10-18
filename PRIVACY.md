@@ -3,8 +3,9 @@
 roto never collects, stores remotely, or transmits any data.
 
 - There is no analytics, crash reporting, update check, telemetry, or account system.
-- The application source under `Sources/` contains no network APIs (`URLSession`, `Network`, `NWConnection`, or similar).
+- The application source under `Sources/` contains no network APIs (`URLSession`, `Network`, `NWConnection`, or similar). App search links [fff](https://github.com/dmtrKovalenko/fff) (`native/fff-bridge`), built without network features; the app binary imports no socket, DNS, or TLS functions.
 - Clipboard history is saved locally by default (`clipboard.persist = true`): entries in `~/Library/Application Support/roto/clipboard.json` and copied images in `clipboard-images/` next to it, all mode `0600`. Images are deleted once they fall out of history. Set `clipboard.persist = false` to keep history in memory only; roto then removes the saved images.
+- App search keeps two local folders in `~/Library/Application Support/roto/`: `app-index/`, one empty file named after each installed app, and `app-frecency/`, the times you opened each app from search, used only to rank results. Delete either folder at any time; roto rebuilds the index and starts the history over.
 - Config lives at `~/.config/roto/config.toml` on your machine.
 - Accessibility permission is used only to move, focus, close, and minimize windows, to list window titles in the window switcher, and to synthesize paste / unicode insertion into the frontmost app. roto does not read document contents.
 - Screen Recording is optional. roto asks for it only when you click "Show live window previews…" in the window switcher, and captures only the selected window, kept in memory.

@@ -10,11 +10,13 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     var onShowShortcuts: (() -> Void)?
     var onCustomizeShortcuts: (() -> Void)?
     var onShowWindows: (() -> Void)?
+    var onSearchApps: (() -> Void)?
     var onQuit: (() -> Void)?
     var onRequestAccessibility: (() -> Void)?
     private var lastError: String?
     private var shortcutIssues: [String] = []
     private var lastWindowIssue: String?
+    private var launcherIssue: String?
 
     init(
         statusItem: NSStatusItem? = nil,
@@ -40,6 +42,12 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         rebuild(error: lastError)
     }
 
+    func setLauncherIssue(_ issue: String?) {
+        guard issue != launcherIssue else { return }
+        launcherIssue = issue
+        rebuild(error: lastError)
+    }
+
     func rebuild(error: String?) {
         lastError = error
         let menu = NSMenu()
@@ -57,6 +65,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
 
         var warnings = shortcutIssues
         if let error, !error.isEmpty { warnings.insert("Config error: \(error)", at: 0) }
+        if let launcherIssue { warnings.append(launcherIssue) }
         if let lastWindowIssue { warnings.append("Last window action: \(lastWindowIssue)") }
         for warning in warnings {
             let entry = NSMenuItem(title: warning, action: nil, keyEquivalent: "")
@@ -79,6 +88,10 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         let customize = NSMenuItem(title: "Customize Shortcuts…", action: #selector(customizeShortcuts), keyEquivalent: ",")
         customize.target = self
         menu.addItem(customize)
+
+        let apps = NSMenuItem(title: "Search Apps…", action: #selector(searchApps), keyEquivalent: "")
+        apps.target = self
+        menu.addItem(apps)
 
         let windows = NSMenuItem(title: "Switch Windows…", action: #selector(showWindows), keyEquivalent: "")
         windows.target = self
@@ -146,6 +159,10 @@ final class StatusMenu: NSObject, NSMenuDelegate {
 
     @objc private func customizeShortcuts() {
         onCustomizeShortcuts?()
+    }
+
+    @objc private func searchApps() {
+        onSearchApps?()
     }
 
     @objc private func showWindows() {

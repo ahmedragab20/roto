@@ -165,6 +165,17 @@ struct ConfigLoaderTests {
         #expect(config.apps.whenFocused == .cycle)
     }
 
+    @Test func launcherTakesSpotlightsKeyByDefault() throws {
+        let config = try ConfigLoader.parse(ConfigLoader.defaultTOML)
+        #expect(config.hotkeys.launcher == "cmd+space")
+        let bindings = try ConfigLoader.bindings(in: config)
+        #expect(bindings.filter { $0.1 == .launcher }.map(\.0.canonical) == ["cmd+space"])
+    }
+
+    @Test func launcherMustBeAString() {
+        #expect(throws: ConfigError.self) { try ConfigLoader.parse("[hotkeys]\nlauncher = 3") }
+    }
+
     @Test func bundledDefaultConfigParses() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -173,6 +184,7 @@ struct ConfigLoaderTests {
         let url = root.appendingPathComponent("Sources/Roto/Resources/config.default.toml")
         let config = try ConfigLoader.load(from: url)
         #expect(config.hotkeys.windows == "ctrl+alt+w")
+        #expect(config.hotkeys.launcher == "cmd+space")
         #expect(config.apps.whenFocused == .cycle)
     }
 
