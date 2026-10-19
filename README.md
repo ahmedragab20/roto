@@ -29,7 +29,7 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 
 | Tool | Default key | What it does |
 | --- | --- | --- |
-| App search | ⌘Space | Find and open any installed app; forgives typos and learns what you open |
+| App search and commands | ⌘Space | Find apps and custom commands; forgives typos and learns which apps you open |
 | Window layout | ⌃⌥← ⌃⌥→ ⌃⌥↑ ⌃⌥↓ … | Halves, thirds, quarters, maximize, large centered (⌃⌥⇧C), center, next display |
 | Window focus | ⌃⌥⇧H/J/K/L | Focus the window to the left, right, above, or below |
 | App hotkeys | ⌃⌥T, ⌃⌥B, your own | Open, focus, or cycle an app with one chord |
@@ -41,7 +41,7 @@ Each tool has its own hotkey and opens directly. No palette, no extensions, no a
 
 ## Native, fast, small
 
-Swift on AppKit, SwiftUI, the Accessibility API, and ScreenCaptureKit. No Electron, no web views, no helper processes. Two dependencies, both compiled in: a TOML parser, and [fff](https://github.com/dmtrKovalenko/fff), the Rust search library behind app search.
+Swift on AppKit, SwiftUI, the Accessibility API, and ScreenCaptureKit. No Electron, no web views. Two dependencies, both compiled in: a TOML parser, and [fff](https://github.com/dmtrKovalenko/fff), the Rust search library behind app search.
 
 | Measure | Result |
 | --- | --- |
@@ -88,16 +88,18 @@ To change keymaps without editing TOML, choose **Customize Shortcuts…** in the
 
 Every key and value is in the [config reference](docs/config.md).
 
+Search for **Sleep Display** (or `screen off`) in ⌘Space to put the display to sleep. Add your own shell commands with `[[commands]]` blocks in `config.toml`; they appear alongside apps and run with ↵. See [custom commands](docs/config.md#custom-commands) for examples.
+
 ## What roto won't do
 
-- Search files or the web. App search covers apps only, for now.
+- Search files or the web. The launcher covers apps and configured commands.
 - Plugins, extension stores, AI features, or sync.
 - Signed downloads or auto-update. You build it from source.
 - Run on macOS older than 14.
 
 ## Privacy
 
-The app contains no network code: no analytics, no accounts, no update checks. Clipboard history stays on your Mac in files only you can read. Details in [PRIVACY.md](PRIVACY.md).
+The app contains no network code: no analytics, no accounts, no update checks. Clipboard history stays on your Mac in files only you can read. Custom commands run programs you configure, which may access the network. Details in [PRIVACY.md](PRIVACY.md).
 
 ## Development
 

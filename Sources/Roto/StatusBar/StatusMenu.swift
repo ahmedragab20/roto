@@ -89,7 +89,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         customize.target = self
         menu.addItem(customize)
 
-        let apps = NSMenuItem(title: "Search Apps…", action: #selector(searchApps), keyEquivalent: "")
+        let apps = NSMenuItem(title: "Search Apps & Commands…", action: #selector(searchApps), keyEquivalent: "")
         apps.target = self
         menu.addItem(apps)
 

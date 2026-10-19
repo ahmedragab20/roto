@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import RotoCore
 
-/// The app search popup: type part of an app's name, press ↩ to open it.
+/// Apps and configured commands share one searchable, keyboard-driven popup.
 @MainActor
 final class LauncherController: NSObject, ObservableObject {
     @Published var query = "" {
@@ -10,16 +10,18 @@ final class LauncherController: NSObject, ObservableObject {
             if query != oldValue { runSearch() }
         }
     }
-    @Published private(set) var results: [AppRecord] = []
+    @Published private(set) var results: [LauncherResult] = []
     @Published private(set) var selection = 0
     @Published private(set) var scrollToTop = 0
     @Published private(set) var running: Set<String> = []
 
     var popupScreen: PopupScreen = .primary
     let search: AppSearch
+    private var commands: [LauncherCommand] = [.sleepDisplay]
+    private let executeCommand: (LauncherCommand) -> Void
     private weak var searchField: NSTextField?
 
-    /// Rows shown for a query; an empty query lists every app.
+    /// Rows shown for a query; an empty query lists all apps and commands.
     private static let limit = 40
     private static let size = NSSize(width: 680, height: 460)
 
@@ -37,15 +39,29 @@ final class LauncherController: NSObject, ObservableObject {
         return panel
     }()
 
-    init(search: AppSearch = AppSearch()) {
+    init(
+        search: AppSearch = AppSearch(),
+        executeCommand: @escaping (LauncherCommand) -> Void = { CommandRunner.run($0) }
+    ) {
         self.search = search
+        self.executeCommand = executeCommand
         super.init()
     }
 
     var isVisible: Bool { panel.isShown }
 
-    var selectedApp: AppRecord? {
+    var selectedResult: LauncherResult? {
         results.indices.contains(selection) ? results[selection] : nil
+    }
+
+    var selectedApp: AppRecord? {
+        if case .app(let app) = selectedResult { return app }
+        return nil
+    }
+
+    func apply(commands: [LauncherCommand]) {
+        self.commands = commands
+        runSearch(keepSelection: true)
     }
 
     /// Indexes apps and builds the popup now, so the first hotkey press is instant.
@@ -91,8 +107,8 @@ final class LauncherController: NSObject, ObservableObject {
     func select(_ index: Int) {
         guard results.indices.contains(index), index != selection else { return }
         selection = index
-        if let app = selectedApp {
-            Announcer.say(app.name)
+        if let result = selectedResult {
+            Announcer.say(result.name)
         }
     }
 
@@ -101,11 +117,16 @@ final class LauncherController: NSObject, ObservableObject {
             NSSound.beep()
             return
         }
-        let app = results[index]
+        let result = results[index]
         panel.dismiss(animated: false)
-        search.recordLaunch(app)
-        // Like a Dock click: launches it, or brings it forward with a window.
-        WindowFocus.open(URL(fileURLWithPath: app.path))
+        switch result {
+        case .app(let app):
+            search.recordLaunch(app)
+            // Like a Dock click: launches it, or brings it forward with a window.
+            WindowFocus.open(URL(fileURLWithPath: app.path))
+        case .command(let command):
+            executeCommand(command)
+        }
     }
 
     func revealSelected() {
@@ -118,9 +139,12 @@ final class LauncherController: NSObject, ObservableObject {
     }
 
     private func runSearch(keepSelection: Bool = false) {
-        let previous = keepSelection ? selectedApp?.path : nil
-        results = search.search(query, limit: SearchQuery(query).isEmpty ? .max : Self.limit)
-        if let previous, let index = results.firstIndex(where: { $0.path == previous }) {
+        let previous = keepSelection ? selectedResult?.id : nil
+        let limit = SearchQuery(query).isEmpty ? Int.max : Self.limit
+        results = LauncherSearch.merge(
+            apps: search.search(query, limit: limit), commands: commands, query: query, limit: limit
+        )
+        if let previous, let index = results.firstIndex(where: { $0.id == previous }) {
             selection = index
         } else {
             selection = 0
@@ -143,8 +167,9 @@ final class LauncherController: NSObject, ObservableObject {
         return paths
     }
 
-    func isRunning(_ app: AppRecord) -> Bool {
-        running.contains(app.path) || running.contains(app.resolvedPath)
+    func isRunning(_ result: LauncherResult) -> Bool {
+        guard case .app(let app) = result else { return false }
+        return running.contains(app.path) || running.contains(app.resolvedPath)
     }
 
     // MARK: - Keys
@@ -191,18 +216,20 @@ final class LauncherController: NSObject, ObservableObject {
 
     var status: String {
         if SearchQuery(query).isEmpty {
-            let count = results.count
-            return count == 1 ? "1 app" : "\(count) apps"
+            let apps = results.filter { if case .app = $0 { return true }; return false }.count
+            let commands = results.count - apps
+            let appStatus = apps == 1 ? "1 app" : "\(apps) apps"
+            guard commands > 0 else { return appStatus }
+            return appStatus + " · " + (commands == 1 ? "1 command" : "\(commands) commands")
         }
         return results.count == 1 ? "1 match" : "\(results.count) matches"
     }
 
     var hints: [KeyHint] {
-        [
-            KeyHint(keys: "↵", label: "Open"),
-            KeyHint(keys: "⌘↵", label: "Show in Finder"),
-            KeyHint(keys: "⌘1–9", label: "Open result"),
-        ]
+        var hints = [KeyHint(keys: "↵", label: selectedApp == nil ? "Run" : "Open")]
+        if selectedApp != nil { hints.append(KeyHint(keys: "⌘↵", label: "Show in Finder")) }
+        hints.append(KeyHint(keys: "⌘1–9", label: "Choose result"))
+        return hints
     }
 }
 
@@ -214,7 +241,7 @@ struct LauncherView: View {
     var body: some View {
         PanelChrome(
             query: $model.query,
-            placeholder: "Search apps",
+            placeholder: "Search apps and commands",
             status: model.status,
             hints: model.hints,
             needsAccessibility: false,
@@ -227,8 +254,8 @@ struct LauncherView: View {
                 } else {
                     EmptyState(
                         symbol: "square.grid.3x3",
-                        title: "No apps found",
-                        message: "No installed app matches “\(model.query)”."
+                        title: "No results found",
+                        message: "No app or command matches “\(model.query)”."
                     )
                 }
             } else {
@@ -241,15 +268,15 @@ struct LauncherView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 2) {
-                    ForEach(Array(model.results.enumerated()), id: \.element.path) { index, app in
+                    ForEach(Array(model.results.enumerated()), id: \.element.id) { index, result in
                         LauncherRow(
-                            app: app,
+                            result: result,
                             isSelected: index == model.selection,
-                            isRunning: model.isRunning(app),
+                            isRunning: model.isRunning(result),
                             shortcut: index < 9 ? index + 1 : nil
                         )
                         .equatable()
-                        .id(app.path)
+                        .id(result.id)
                         .onTapGesture {
                             model.open(at: index)
                         }
@@ -261,23 +288,23 @@ struct LauncherView: View {
                 .padding(.vertical, 2)
             }
             .onChange(of: model.selection) { _, _ in
-                if let path = model.selectedApp?.path {
-                    proxy.scrollTo(path)
+                if let id = model.selectedResult?.id {
+                    proxy.scrollTo(id)
                 }
             }
             .onChange(of: model.scrollToTop) { _, _ in
-                if let path = model.results.first?.path {
-                    proxy.scrollTo(path, anchor: .top)
+                if let id = model.results.first?.id {
+                    proxy.scrollTo(id, anchor: .top)
                 }
             }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Apps")
+        .accessibilityLabel("Apps and commands")
     }
 }
 
 private struct LauncherRow: View, Equatable {
-    let app: AppRecord
+    let result: LauncherResult
     let isSelected: Bool
     let isRunning: Bool
     let shortcut: Int?
@@ -285,19 +312,17 @@ private struct LauncherRow: View, Equatable {
 
     /// Moving the selection rebuilds only the two rows that changed.
     nonisolated static func == (lhs: LauncherRow, rhs: LauncherRow) -> Bool {
-        lhs.app == rhs.app && lhs.isSelected == rhs.isSelected
+        lhs.result == rhs.result && lhs.isSelected == rhs.isSelected
             && lhs.isRunning == rhs.isRunning && lhs.shortcut == rhs.shortcut
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(nsImage: AppIcons.icon(path: app.path))
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            icon
                 .frame(width: 32, height: 32)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(app.name)
+                Text(result.name)
                     .font(.system(size: 14, weight: .medium))
                     .lineLimit(1)
                 Text(subtitle)
@@ -319,14 +344,39 @@ private struct LauncherRow: View, Equatable {
         .background(SelectionBackground(isSelected: isSelected, isHovered: hovering))
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
-        .help(app.path)
+        .help(detail)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(app.name), \(subtitle)")
+        .accessibilityLabel("\(result.name), \(subtitle)")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private var subtitle: String {
-        let folder = ((app.path as NSString).deletingLastPathComponent as NSString).abbreviatingWithTildeInPath
-        return isRunning ? "Running · \(folder)" : folder
+        switch result {
+        case .app(let app):
+            let folder = ((app.path as NSString).deletingLastPathComponent as NSString).abbreviatingWithTildeInPath
+            return isRunning ? "Running · \(folder)" : folder
+        case .command:
+            return "Command"
+        }
+    }
+
+    private var detail: String {
+        switch result {
+        case .app(let app): app.path
+        case .command(let command): command.command
+        }
+    }
+
+    @ViewBuilder private var icon: some View {
+        switch result {
+        case .app(let app):
+            Image(nsImage: AppIcons.icon(path: app.path))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+        case .command(let command):
+            Image(systemName: command == .sleepDisplay ? "display" : "terminal")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
     }
 }

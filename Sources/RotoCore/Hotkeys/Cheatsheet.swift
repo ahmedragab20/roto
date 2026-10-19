@@ -164,9 +164,9 @@ public enum Cheatsheet {
     /// Keys that work inside each popup. Keep in sync with the panel key handlers.
     public static let popupKeys: [ShortcutSection] = [
         ShortcutSection(title: "In app search", entries: [
-            ShortcutEntry(keys: "↩", title: "Open app"),
+            ShortcutEntry(keys: "↩", title: "Open app or run command"),
             ShortcutEntry(keys: "⌘↩", title: "Show app in Finder"),
-            ShortcutEntry(keys: "⌘1 – ⌘9", title: "Open result 1–9"),
+            ShortcutEntry(keys: "⌘1 – ⌘9", title: "Choose result 1–9"),
             ShortcutEntry(keys: "↑ ↓  ⌃P ⌃N", title: "Move selection"),
             ShortcutEntry(keys: "⌘↑ ⌘↓", title: "First / last result"),
             ShortcutEntry(keys: "⎋", title: "Clear search, then close"),

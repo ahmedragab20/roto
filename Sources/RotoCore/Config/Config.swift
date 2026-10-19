@@ -21,6 +21,7 @@ public struct Config: Sendable, Equatable {
     public var apps: Apps
     public var clipboard: Clipboard
     public var emoji: Emoji
+    public var commands: [LauncherCommand]
 
     public struct General: Sendable, Equatable {
         public var launchAtLogin: Bool
@@ -110,7 +111,8 @@ public struct Config: Sendable, Equatable {
         hotkeys: Hotkeys = Hotkeys(),
         apps: Apps = Apps(),
         clipboard: Clipboard = Clipboard(),
-        emoji: Emoji = Emoji()
+        emoji: Emoji = Emoji(),
+        commands: [LauncherCommand] = [.sleepDisplay]
     ) {
         self.general = general
         self.window = window
@@ -118,6 +120,7 @@ public struct Config: Sendable, Equatable {
         self.apps = apps
         self.clipboard = clipboard
         self.emoji = emoji
+        self.commands = commands
     }
 }
 

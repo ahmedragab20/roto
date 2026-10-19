@@ -35,7 +35,7 @@ Every target builds `native/fff-bridge` (Rust) first; `make fff` builds only tha
 
 On first launch, grant **Accessibility**, shown as **Device Control and Data Access** on macOS 27. roto uses this access only to move, focus, close, and minimize windows and to synthesize paste / unicode insertion.
 
-The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Customize Shortcuts…, Search Apps…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit. Accessibility status is checked again whenever you open the menu, so grants and revocations made in System Settings do not leave a stale label.
+The menu bar icon (the roto mark) exposes Keyboard Shortcuts…, Customize Shortcuts…, Search Apps & Commands…, Switch Windows…, Reload config, Open config, Launch at login, permission state, and Quit. Accessibility status is checked again whenever you open the menu, so grants and revocations made in System Settings do not leave a stale label.
 
 ## Signing (so Accessibility sticks)
 
@@ -88,6 +88,8 @@ Display focus chooses the frontmost eligible window on the adjacent display in t
 
 `[hotkeys] launcher` (⌘Space by default) opens app search. Type part of an app's name and press ↵ to open it. Opening an app that is already running brings it forward, like clicking its Dock icon.
 
+Custom commands share the same results. Type `sleep` or `screen off` and select **Sleep Display** to put the display to sleep. Add more commands in [`config.toml`](config.md#custom-commands). Commands have a display or terminal icon and a **Command** label. Typing never executes anything; ↵ or clicking a command runs it. With an empty search, commands appear after apps, and stronger app matches stay above command keyword matches.
+
 App search replaces Spotlight for opening apps. It does not search files, settings, or the web; Spotlight keeps doing that, on another key or from its menu bar icon.
 
 **Upgrading from an older roto.** roto never rewrites your config, so an existing `config.toml` does not get the new shortcut. Add `launcher = "cmd+space"` under `[hotkeys]`, or open **Customize Shortcuts… → Add Popup → App search** from the menu bar.
@@ -108,9 +110,9 @@ To keep Spotlight on ⌘Space, bind app search to another key instead, for examp
 
 | Key | Action |
 | --- | --- |
-| ↵ | Open the app |
+| ↵ | Open the app or run the command |
 | ⌘↵ | Show the app in Finder |
-| ⌘1–⌘9 | Open result 1–9 |
+| ⌘1–⌘9 | Open or run result 1–9 |
 | ↑ ↓, ⌃P ⌃N | Move |
 | ⌘↑ ⌘↓ | First / last result |
 | Page Up / Page Down | Move 7 rows |

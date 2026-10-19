@@ -121,6 +121,32 @@ Values for `[hotkeys.window]`:
 | `focus-prev-display` | Focus previous display |
 | `layout:NAME` | A layout defined under `[window.layouts]` |
 
+## Custom commands
+
+Commands appear alongside apps in ⌘Space. **Sleep Display** is available by default, including with older configs. Search `sleep`, `display sleep`, or `screen off`, then press ↵. This runs `pmset displaysleepnow`, which puts the display to sleep immediately.
+
+Add one `[[commands]]` block per shell command:
+
+```toml
+[[commands]]
+name = "Sleep Display"
+command = "/usr/bin/pmset displaysleepnow"
+keywords = ["sleep", "screen off", "display off", "monitor off"]
+
+[[commands]]
+name = "Open Work Folder"
+command = 'open "$HOME/Projects"'
+keywords = ["projects", "workspace"]
+```
+
+An explicit command list replaces the default list, so keep the Sleep Display block if you want it alongside your commands. To disable all commands, put `commands = []` at the very top of the file, before any section header. Omitting commands entirely restores the default. Saving reloads the list immediately; invalid entries leave the last good config active.
+
+`name` and `command` are required, non-empty strings; names must be unique ignoring case and accents. `keywords` is an optional array of strings. Names and keywords are searched with the built-in fuzzy matcher; shell text is not searched. Commands rank by relevance, with names weighted above keywords. Equally strong app matches stay ahead, and the existing app ordering and launch history are preserved. With an empty query, commands follow the apps.
+
+Command rows show **Command** and a terminal or display icon. ↵, clicking a row, or ⌘1–⌘9 runs that command after closing the popup. ⌘↵ only reveals apps in Finder; it does nothing for commands. Typing alone never runs anything, and the query is never appended to the shell command.
+
+Commands run as your user through `/bin/zsh -c`, with your home directory as the working directory and roto's inherited environment. Shell syntax, pipes, quotes, and `$HOME` work; interactive and login shell profiles are not loaded. Use absolute executable paths for tools outside the inherited `PATH`. Commands run in the background, with no terminal, closed standard input, and discarded output. A launch failure, nonzero exit, or signal shows an error. Interactive prompts and commands requiring terminal input are not supported.
+
 ## Reloading
 
 roto watches `~/.config/roto/config.toml` and applies edits right away. A config with errors never stops the app: the last good config stays active, and the menu bar icon shows the error. The cheatsheet (⌃⌥/) lists the shortcuts from the active config. Check the menu for registration warnings: macOS or another app can reserve a valid combination. **Reload config** retries registration. Events queued before a reload or recorder suspension cannot invoke a replacement binding.

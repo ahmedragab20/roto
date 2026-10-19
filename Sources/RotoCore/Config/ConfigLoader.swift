@@ -76,6 +76,11 @@ public enum ConfigLoader {
 
         [emoji]
         skin_tone = "default"
+
+        [[commands]]
+        name = "Sleep Display"
+        command = "/usr/bin/pmset displaysleepnow"
+        keywords = ["sleep", "screen off", "display off", "monitor off"]
         """
 
     public static var builtin: Config {
@@ -268,6 +273,45 @@ public enum ConfigLoader {
             }
         }
 
+        if let value = table["commands"] {
+            if let entries = value.array {
+                config.commands = []
+                var names: Set<String> = []
+                for (index, value) in entries.enumerated() {
+                    let path = "commands[\(index + 1)]"
+                    // TOMLKit's `.string` uses a NUL-terminated C string. Its
+                    // JSON serializer preserves embedded NULs so we can reject
+                    // them instead of silently executing a truncated command.
+                    guard let entry = value.table,
+                          let strings = try? JSONDecoder().decode(
+                            CommandStrings.self, from: Data(entry.convert(to: .json).utf8)
+                          ),
+                          !strings.name.contains("\0"), !strings.command.contains("\0"),
+                          !strings.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                          !strings.command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    else {
+                        errors.append("\(path) needs non-empty name and command strings without NUL characters")
+                        continue
+                    }
+                    let name = strings.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !names.insert(Fuzzy.normalize(name)).inserted {
+                        errors.append("\(path) has duplicate command name '\(name)'")
+                    }
+                    var keywords: [String] = []
+                    if let value = entry["keywords"] {
+                        if let array = value.array, array.allSatisfy({ $0.string != nil }) {
+                            keywords = array.compactMap(\.string)
+                        } else {
+                            errors.append("\(path).keywords must be an array of strings")
+                        }
+                    }
+                    config.commands.append(LauncherCommand(name: name, command: strings.command, keywords: keywords))
+                }
+            } else {
+                errors.append("commands must be an array of tables ([[commands]])")
+            }
+        }
+
         errors.append(contentsOf: validate(config))
         if !errors.isEmpty {
             throw ConfigError.validation(errors.joined(separator: "; "))
@@ -371,6 +415,11 @@ public enum ConfigLoader {
             }
         }
         return result
+    }
+
+    private struct CommandStrings: Decodable {
+        let name: String
+        let command: String
     }
 
     private static func fractionalRect(_ table: TOMLTable) -> FractionalRect? {

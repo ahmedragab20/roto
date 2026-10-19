@@ -137,6 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         emojiPanel.popupScreen = config.general.popupScreen
         windowSwitcher.popupScreen = config.general.popupScreen
         appSearch.popupScreen = config.general.popupScreen
+        appSearch.apply(commands: config.commands)
         cheatsheet.popupScreen = config.general.popupScreen
         keymapEditor.popupScreen = config.general.popupScreen
         if let bindings = try? ConfigLoader.bindings(in: config) {

@@ -59,3 +59,9 @@ ignore_apps = ["com.1password.1password"]
 
 [emoji]
 skin_tone = "default"
+
+# Searchable alongside apps. Add another [[commands]] block for each command.
+[[commands]]
+name = "Sleep Display"
+command = "/usr/bin/pmset displaysleepnow"
+keywords = ["sleep", "screen off", "display off", "monitor off"]
